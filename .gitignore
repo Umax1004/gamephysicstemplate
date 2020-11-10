@@ -1,0 +1,4 @@
+.vs/
+*.vcxproj.user
+**/Win32
+**/Debug
