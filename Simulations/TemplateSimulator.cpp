@@ -14,6 +14,10 @@ const char * TemplateSimulator::getTestCasesStr(){
 	return "Teapot,Random Objects,Triangle";
 }
 
+const char* TemplateSimulator::getIntegratorsStr() {
+	return "-";
+}
+
 void TemplateSimulator::reset(){
 		m_mouse.x = m_mouse.y = 0;
 		m_trackmouse.x = m_trackmouse.y = 0;

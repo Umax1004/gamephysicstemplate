@@ -10,10 +10,12 @@ public:
 
 	// Functions
 	const char * getTestCasesStr();
+	const char* getIntegratorsStr();
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
+	void setIntegrator(int) override {};
 	void externalForcesCalculations(float timeElapsed);
 	void simulateTimestep(float timeStep);
 	void onClick(int x, int y);

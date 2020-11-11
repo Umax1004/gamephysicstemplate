@@ -45,6 +45,8 @@ float 	g_fTimestep = 0.001;
 float   g_fTimeFactor = 1;
 #endif
 bool  g_bDraw = true;
+int g_iPreIntegrator = EULER;
+int g_iIntegrator = MIDPOINT;
 int g_iTestCase = 0;
 int g_iPreTestCase = -1;
 bool  g_bSimulateByStep = false;
@@ -58,6 +60,8 @@ void initTweakBar(){
 	TwDefine(" TweakBar color='0 128 128' alpha=128 ");
 	TwType TW_TYPE_TESTCASE = TwDefineEnumFromString("Test Scene", g_pSimulator->getTestCasesStr());
 	TwAddVarRW(g_pDUC->g_pTweakBar, "Test Scene", TW_TYPE_TESTCASE, &g_iTestCase, "");
+	TwType TW_TYPE_INTEGRATOR = TwDefineEnumFromString("Integrator", g_pSimulator->getIntegratorsStr());
+	TwAddVarRW(g_pDUC->g_pTweakBar, "Integrator", TW_TYPE_INTEGRATOR, &g_iIntegrator, "");
 	// HINT: For buttons you can directly pass the callback function as a lambda expression.
 	TwAddButton(g_pDUC->g_pTweakBar, "Reset Scene", [](void * s){ g_iPreTestCase = -1; }, nullptr, "");
 	TwAddButton(g_pDUC->g_pTweakBar, "Reset Camera", [](void * s){g_pDUC->g_camera.Reset();}, nullptr,"");
@@ -241,6 +245,10 @@ void CALLBACK OnFrameMove( double dTime, float fElapsedTime, void* pUserContext 
 {
 	UpdateWindowTitle(L"Demo");
 	g_pDUC->update(fElapsedTime);
+	if (g_iPreIntegrator != g_iIntegrator) {
+		g_pSimulator->setIntegrator(g_iIntegrator);
+		g_iPreIntegrator = g_iIntegrator;
+	}
 	if (g_iPreTestCase != g_iTestCase){// test case changed
 		// clear old setup and build up new setup
 		if(g_pDUC->g_pTweakBar != nullptr) {
@@ -365,10 +373,9 @@ int main(int argc, char* argv[])
 	auto sim = new MassSpringSystemSimulator;
 	//Demo
 	sim->setMass(10.0f);
-	sim->setDampingFactor(150.0f);
+	sim->setDampingFactor(1/*50.0f*/);
 	sim->setStiffness(30000.0f);
-	sim->applyExternalForce(Vec3(0, 0, 0));
-	sim->setGravity(300);
+	sim->applyExternalForce(Vec3{ 0, -3000, 0 });
 	int p0 = sim->addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(0.0, 0.0f, 0), false);
 	int p1 = sim->addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
 	sim->addSpring(p0, p1, 0.5);

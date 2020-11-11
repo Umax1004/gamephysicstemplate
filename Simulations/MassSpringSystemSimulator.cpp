@@ -6,6 +6,10 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 }
 
 const char* MassSpringSystemSimulator::getTestCasesStr() {
+	return "DEFAULT";
+}
+
+const char* MassSpringSystemSimulator::getIntegratorsStr() {
 	return "EULER,LEAPFROG,MIDPOINT";
 }
 
@@ -50,7 +54,6 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
-	m_iIntegrator = testCase;
 }
 
 void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
@@ -122,14 +125,10 @@ void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 {
 	m_externalForce = force;
 }
-void MassSpringSystemSimulator::setGravity(float g)
-{
-	m_fGravity = g;
-}
 
 void MassSpringSystemSimulator::computeForces() {
 	for (auto& point : m_vPoints)
-		point.force = Vec3{ 0, -m_fGravity * m_fMass, 0 } + m_externalForce - m_fDamping * point.velocity;
+		point.force = m_externalForce - m_fDamping * point.velocity;
 	for (size_t i = 0; i < m_vSprings.size(); i++) {
 		Vec3 force = computeElasticForce(m_vSprings[i]);
 		m_vPoints[m_vSprings[i].point1].force += force;
