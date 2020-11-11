@@ -3,6 +3,15 @@
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
 	m_iTestCase = 0;
+
+	//Demo
+	setMass(10.0f);
+	setDampingFactor(0.0f);
+	setStiffness(40.0f);
+	applyExternalForce(Vec3(0, 0, 0));
+	int p0 = addMassPoint(Vec3(0.0, 0.0f, 0), Vec3(-1.0, 0.0f, 0), false);
+	int p1 = addMassPoint(Vec3(0.0, 2.0f, 0), Vec3(1.0, 0.0f, 0), false);
+	addSpring(p0, p1, 1.0);
 }
 
 const char* MassSpringSystemSimulator::getTestCasesStr() {
@@ -23,6 +32,29 @@ void MassSpringSystemSimulator::reset()
 
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
+	for (int i = 0; i < m_vSprings.size(); i++)
+	{
+		cout << "Line" << m_vPoints[m_vSprings[i].point1].position << "and" << m_vPoints[m_vSprings[i].point2].position << endl;
+		//DUC->drawLine(m_vPoints[m_vSprings[i].point1].position, Vec3(1), m_vPoints[m_vSprings[i].point2].position, Vec3(1));
+		//DUC->endLine();
+		PrimitiveBatch<VertexPositionColor> g_pPrimitiveBatchPositionColor = PrimitiveBatch<VertexPositionColor>(pd3dImmediateContext);
+
+		g_pPrimitiveBatchPositionColor.Begin();
+
+		VertexPositionColor v1(m_vPoints[m_vSprings[i].point1].position.toDirectXVector(), Colors::Yellow);
+		VertexPositionColor v2(m_vPoints[m_vSprings[i].point2].position.toDirectXVector(), Colors::Yellow);
+
+		g_pPrimitiveBatchPositionColor.DrawLine(v1, v2);
+
+		g_pPrimitiveBatchPositionColor.End();
+	}
+
+	for (int i = 0; i < m_vPoints.size(); i++)
+	{
+		DUC->drawSphere(m_vPoints[i].position, Vec3(0.1));
+	}
+
+	
 }
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
