@@ -166,12 +166,12 @@ void MassSpringSystemSimulator::integratePositionsEuler(float ts) {
 	for (auto& point : m_vPoints) {
 		if (!point.isFixed)
 		{
-			Vec3 resultantPos = point.velocity * ts;
-			if (resultantPos.y <= 0)
+			/*Vec3 resultantPos = point.velocity * ts;
+			if (resultantPos.x <= 0)
 			{
-				resultantPos.y = 0;
-			}
-			point.position += resultantPos;
+				resultantPos.x = 0;
+			}*/
+			point.position += point.velocity * ts;
 		}
 	}
 }
