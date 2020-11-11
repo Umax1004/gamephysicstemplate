@@ -27,19 +27,22 @@ using namespace GamePhysics;
 
 #ifdef TEMPLATE_DEMO
 #include "TemplateSimulator.h"
+TemplateSimulator* g_pSimulator;
 #endif
 #ifdef MASS_SPRING_SYSTEM
 #include "MassSpringSystemSimulator.h"
+MassSpringSystemSimulator* g_pSimulator;
 #endif
 #ifdef RIGID_BODY_SYSTEM
 //#include "RigidBodySystemSimulator.h"
+RigidBodySystemSimulator* g_pSimulator;
 #endif
 #ifdef SPH_SYSTEM
 //#include "SPHSystemSimulator.h"
+SPHSystemSimulator* g_pSimulator;
 #endif
 
 DrawingUtilitiesClass * g_pDUC;
-Simulator * g_pSimulator;
 float 	g_fTimestep = 0.001;
 #ifdef ADAPTIVESTEP
 float   g_fTimeFactor = 1;
@@ -370,16 +373,15 @@ int main(int argc, char* argv[])
 	g_pSimulator= new TemplateSimulator();
 #endif
 #ifdef MASS_SPRING_SYSTEM
-	auto sim = new MassSpringSystemSimulator;
+	g_pSimulator = new MassSpringSystemSimulator;
 	//Demo
-	sim->setMass(10.0f);
-	sim->setDampingFactor(1/*50.0f*/);
-	sim->setStiffness(30000.0f);
-	sim->applyExternalForce(Vec3{ 0, -3000, 0 });
-	int p0 = sim->addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(0.0, 0.0f, 0), false);
-	int p1 = sim->addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
-	sim->addSpring(p0, p1, 0.5);
-	g_pSimulator = sim;
+	g_pSimulator->setMass(10.0f);
+	g_pSimulator->setDampingFactor(1/*50.0f*/);
+	g_pSimulator->setStiffness(30000.0f);
+	g_pSimulator->applyExternalForce(Vec3{ 0, -3000, 0 });
+	int p0 = g_pSimulator->addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(0.0, 0.0f, 0), false);
+	int p1 = g_pSimulator->addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
+	g_pSimulator->addSpring(p0, p1, 0.5);
 #endif
 #ifdef RIGID_BODY_SYSTEM
 	//g_pSimulator= new RigidBodySystemSimulator();
