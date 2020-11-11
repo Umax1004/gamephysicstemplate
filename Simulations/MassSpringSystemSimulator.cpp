@@ -9,7 +9,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	setDampingFactor(0.0f);
 	setStiffness(40.0f);
 	applyExternalForce(Vec3(0, 0, 0));
-	int p0 = addMassPoint(Vec3(0.0, 0.0f, 0), Vec3(-1.0, 0.0f, 0), false);
+	int p0 = addMassPoint(Vec3(0.0, 0.0f, 0), Vec3(-1.0, 0.0f, 0), true);
 	int p1 = addMassPoint(Vec3(0.0, 2.0f, 0), Vec3(1.0, 0.0f, 0), false);
 	addSpring(p0, p1, 1.0);
 }
@@ -164,6 +164,7 @@ void MassSpringSystemSimulator::integrate(float ts) {
 
 void MassSpringSystemSimulator::integratePositionsEuler(float ts) {
 	for (auto& point : m_vPoints) {
+		if(!point.isFixed)
 		point.position += point.velocity * ts;
 	}
 }
