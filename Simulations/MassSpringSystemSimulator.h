@@ -58,11 +58,18 @@ public:
 	}
 
 private:
+	Vec3 computeElasticForce(Spring s);
+	void integratePositions(float ts);
+	void integratePositionsEuler(float ts);
+	void integrateVelocities(float ts);
+	void integrateVelocitiesEuler(float ts);
+
+private:
 	// Data Attributes
 	float m_fMass=1;
 	float m_fStiffness=1;
 	float m_fDamping=1;
-	int m_iIntegrator=0;
+	int m_iIntegrator=EULER;
 	std::vector<Point> m_vPoints;
 	std::vector<Spring> m_vSprings;
 

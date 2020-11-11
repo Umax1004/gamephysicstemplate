@@ -35,6 +35,15 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
+	for (auto& point : m_vPoints)
+		point.force = m_externalForce;
+	for (size_t i = 0; i < m_vSprings.size(); i++) {
+		Vec3 force = computeElasticForce(m_vSprings[i]);
+		m_vPoints[m_vSprings[i].point1].force += force;
+		m_vPoints[m_vSprings[i].point2].force -= force;
+	}
+	integratePositions(timeStep);
+	integrateVelocities(timeStep);
 }
 
 void MassSpringSystemSimulator::onClick(int x, int y)
@@ -95,4 +104,40 @@ Vec3 MassSpringSystemSimulator::getVelocityOfMassPoint(int index)
 void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 {
 	m_externalForce = force;
+}
+
+Vec3 MassSpringSystemSimulator::computeElasticForce(Spring s)
+{
+	Vec3 p1 = m_vPoints[s.point1].position;
+	Vec3 p2 = m_vPoints[s.point2].position;
+	float curLength = sqrt(p1.squaredDistanceTo(p2));
+	Vec3 dir = (p2 - p1)/curLength;
+	return m_fStiffness * (curLength - s.initialLength)*dir;
+}
+
+void MassSpringSystemSimulator::integratePositionsEuler(float ts) {
+	for (auto& point : m_vPoints) {
+		point.position += point.velocity * ts;
+	}
+}
+
+void MassSpringSystemSimulator::integratePositions(float ts) {
+	if (m_iIntegrator == EULER)
+		integratePositionsEuler(ts);
+	else
+		throw "Not implemented";
+}
+
+void MassSpringSystemSimulator::integrateVelocitiesEuler(float ts) {
+	for (auto& point : m_vPoints) {
+		Vec3 accel = point.force / m_fMass;
+		point.velocity += accel * ts;
+	}
+}
+
+void MassSpringSystemSimulator::integrateVelocities(float ts) {
+	if (m_iIntegrator == EULER)
+		integrateVelocitiesEuler(ts);
+	else
+		throw "Not implemented";
 }
