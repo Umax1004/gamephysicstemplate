@@ -374,14 +374,6 @@ int main(int argc, char* argv[])
 #endif
 #ifdef MASS_SPRING_SYSTEM
 	g_pSimulator = new MassSpringSystemSimulator;
-	//Demo
-	g_pSimulator->setMass(10.0f);
-	g_pSimulator->setDampingFactor(1/*50.0f*/);
-	g_pSimulator->setStiffness(30000.0f);
-	g_pSimulator->applyExternalForce(Vec3{ 0, -3000, 0 });
-	int p0 = g_pSimulator->addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(0.0, 0.0f, 0), false);
-	int p1 = g_pSimulator->addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
-	g_pSimulator->addSpring(p0, p1, 0.5);
 #endif
 #ifdef RIGID_BODY_SYSTEM
 	//g_pSimulator= new RigidBodySystemSimulator();

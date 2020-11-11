@@ -6,7 +6,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 }
 
 const char* MassSpringSystemSimulator::getTestCasesStr() {
-	return "DEFAULT";
+	return "PENDULUM";
 }
 
 const char* MassSpringSystemSimulator::getIntegratorsStr() {
@@ -54,6 +54,18 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
+	m_vPoints.clear();
+	m_vSprings.clear();
+
+	if (testCase == 0) { // Pendulum
+		setMass(10.0f);
+		setDampingFactor(1/*50.0f*/);
+		setStiffness(30000.0f);
+		applyExternalForce(Vec3{ 0, -3000, 0 });
+		int p0 = addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(0.0, 0.0f, 0), false);
+		int p1 = addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
+		addSpring(p0, p1, 0.5);
+	}
 }
 
 void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
