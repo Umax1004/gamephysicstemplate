@@ -191,9 +191,11 @@ void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool bAltDown, void* pUserC
                 if (!g_pFFmpegVideoRecorder) {
                     g_pFFmpegVideoRecorder = new FFmpeg(25, 21, FFmpeg::MODE_INTERPOLATE);
                     V(g_pFFmpegVideoRecorder->StartRecording(DXUTGetD3D11Device(), DXUTGetD3D11RenderTargetView(), "output.avi"));
+					std::wcout << L"Recording..." << std::endl;
                 } else {
                     g_pFFmpegVideoRecorder->StopRecording();
                     SAFE_DELETE(g_pFFmpegVideoRecorder);
+					std::wcout << L"Recording stopped." << std::endl;
                 }
             }			    
 		}
