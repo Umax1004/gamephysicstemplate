@@ -59,7 +59,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 
 	if (testCase == 0) { // Pendulum
 		setMass(10.0f);
-		setDampingFactor(1/*50.0f*/);
+		setDampingFactor(150);
 		setStiffness(30000.0f);
 		applyExternalForce(Vec3{ 0, -3000, 0 });
 		int p0 = addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(0.0, 0.0f, 0), false);
@@ -68,8 +68,29 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 	}
 }
 
-void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
+/*
+* Confusing naming: externalForcesCalculations calculates mouse force
+* m_externalForce is the gravity, i.e., the non-interactive component of the "external force"
+*/
+void MassSpringSystemSimulator::externalForcesCalculations(float /*timeElapsed*/)
 {
+	Point2D mouseDiff;
+	mouseDiff.x = m_trackmouse.x - m_oldtrackmouse.x;
+	mouseDiff.y = m_trackmouse.y - m_oldtrackmouse.y;
+	if (mouseDiff.x != 0 || mouseDiff.y != 0)
+	{
+		Mat4 worldViewInv = Mat4(DUC->g_camera.GetWorldMatrix() * DUC->g_camera.GetViewMatrix());
+		worldViewInv = worldViewInv.inverse();
+		Vec3 inputView = Vec3((float)mouseDiff.x, (float)-mouseDiff.y, 0);
+		Vec3 inputWorld = worldViewInv.transformVectorNormal(inputView);
+		// find a proper scale!
+		float inputScale = 30;
+		inputWorld = inputWorld * inputScale;
+		m_mouseForce = inputWorld;
+	}
+	else {
+		m_mouseForce = Vec3{};
+	}
 }
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
@@ -140,7 +161,7 @@ void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 
 void MassSpringSystemSimulator::computeForces() {
 	for (auto& point : m_vPoints)
-		point.force = m_externalForce - m_fDamping * point.velocity;
+		point.force = m_mouseForce + m_externalForce - m_fDamping * point.velocity;
 	for (size_t i = 0; i < m_vSprings.size(); i++) {
 		Vec3 force = computeElasticForce(m_vSprings[i]);
 		m_vPoints[m_vSprings[i].point1].force += force;

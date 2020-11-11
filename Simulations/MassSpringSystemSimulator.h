@@ -77,8 +77,9 @@ private:
 
 	// UI Attributes
 	Vec3 m_externalForce;
-	Point2D m_mouse;
-	Point2D m_trackmouse;
-	Point2D m_oldtrackmouse;
+	Vec3 m_mouseForce;
+	Point2D m_mouse{0};
+	Point2D m_trackmouse{0};
+	Point2D m_oldtrackmouse{0};
 };
 #endif
