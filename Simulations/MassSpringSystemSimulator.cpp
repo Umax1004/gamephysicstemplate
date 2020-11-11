@@ -50,6 +50,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
+	m_iIntegrator = testCase;
 }
 
 void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
@@ -158,8 +159,11 @@ void MassSpringSystemSimulator::integrate(float ts) {
 
 void MassSpringSystemSimulator::integratePositionsEuler(float ts) {
 	for (auto& point : m_vPoints) {
-		if (point.isFixed == false)
+		if (!point.isFixed)
+		{	
 			point.position += point.velocity * ts;
+			point.position.y = std::max(point.position.y, -0.75); // TODO: More advanced collision detection. See the description PDF.
+		}
 	}
 }
 
