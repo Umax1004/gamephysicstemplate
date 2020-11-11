@@ -68,7 +68,7 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
 	for (auto& point : m_vPoints)
-		point.force = m_externalForce;
+		point.force = m_externalForce - m_fDamping * point.velocity;
 	for (size_t i = 0; i < m_vSprings.size(); i++) {
 		Vec3 force = computeElasticForce(m_vSprings[i]);
 		m_vPoints[m_vSprings[i].point1].force += force;
