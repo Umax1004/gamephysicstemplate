@@ -58,10 +58,11 @@ public:
 	}
 
 private:
+	void computeForces();
 	Vec3 computeElasticForce(Spring s);
-	void integratePositions(float ts);
+	void integrate(float ts);
+	void integrateMidpoint(float ts);
 	void integratePositionsEuler(float ts);
-	void integrateVelocities(float ts);
 	void integrateVelocitiesEuler(float ts);
 
 private:
