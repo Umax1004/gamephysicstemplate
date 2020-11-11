@@ -51,6 +51,7 @@ public:
 	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
 	void applyExternalForce(Vec3 force);
+	void setGravity(float g);
 	
 	// Do Not Change
 	void setIntegrator(int integrator) {
@@ -76,6 +77,7 @@ private:
 
 	// UI Attributes
 	Vec3 m_externalForce;
+	float m_fGravity = 0;
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;

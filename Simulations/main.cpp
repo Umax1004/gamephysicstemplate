@@ -362,7 +362,17 @@ int main(int argc, char* argv[])
 	g_pSimulator= new TemplateSimulator();
 #endif
 #ifdef MASS_SPRING_SYSTEM
-	g_pSimulator= new MassSpringSystemSimulator();
+	auto sim = new MassSpringSystemSimulator;
+	//Demo
+	sim->setMass(10.0f);
+	sim->setDampingFactor(150.0f);
+	sim->setStiffness(30000.0f);
+	sim->applyExternalForce(Vec3(0, 0, 0));
+	sim->setGravity(300);
+	int p0 = sim->addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(0.0, 0.0f, 0), false);
+	int p1 = sim->addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
+	sim->addSpring(p0, p1, 0.5);
+	g_pSimulator = sim;
 #endif
 #ifdef RIGID_BODY_SYSTEM
 	//g_pSimulator= new RigidBodySystemSimulator();

@@ -3,15 +3,6 @@
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
 	m_iTestCase = 0;
-
-	//Demo
-	setMass(10.0f);
-	setDampingFactor(0.0f);
-	setStiffness(40.0f);
-	applyExternalForce(Vec3(0, 0, 0));
-	int p0 = addMassPoint(Vec3(0.0, 0.0f, 0), Vec3(-1.0, 0.0f, 0), false);
-	int p1 = addMassPoint(Vec3(0.0, 2.0f, 0), Vec3(1.0, 0.0f, 0), false);
-	addSpring(p0, p1, 1.0);
 }
 
 const char* MassSpringSystemSimulator::getTestCasesStr() {
@@ -130,10 +121,14 @@ void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 {
 	m_externalForce = force;
 }
+void MassSpringSystemSimulator::setGravity(float g)
+{
+	m_fGravity = g;
+}
 
 void MassSpringSystemSimulator::computeForces() {
 	for (auto& point : m_vPoints)
-		point.force = m_externalForce - m_fDamping * point.velocity;
+		point.force = Vec3{ 0, -m_fGravity * m_fMass, 0 } + m_externalForce - m_fDamping * point.velocity;
 	for (size_t i = 0; i < m_vSprings.size(); i++) {
 		Vec3 force = computeElasticForce(m_vSprings[i]);
 		m_vPoints[m_vSprings[i].point1].force += force;
@@ -163,7 +158,8 @@ void MassSpringSystemSimulator::integrate(float ts) {
 
 void MassSpringSystemSimulator::integratePositionsEuler(float ts) {
 	for (auto& point : m_vPoints) {
-		point.position += point.velocity * ts;
+		if (point.isFixed == false)
+			point.position += point.velocity * ts;
 	}
 }
 
