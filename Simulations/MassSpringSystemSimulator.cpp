@@ -59,6 +59,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
+	m_iIntegrator = testCase;
 }
 
 void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
