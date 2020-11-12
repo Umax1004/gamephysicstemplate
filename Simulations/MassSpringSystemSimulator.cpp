@@ -58,10 +58,10 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 	m_vSprings.clear();
 
 	if (testCase == 0) { // Pendulum
-		setMass(10.0f);
-		setDampingFactor(150);
-		setStiffness(30000.0f);
-		applyExternalForce(Vec3{ 0, -3000, 0 });
+		setMass(1.0f);
+		setDampingFactor(1);
+		setStiffness(30.0f);
+		applyExternalForce(Vec3{ 0, -3, 0 });
 		int p0 = addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(0.0, 0.0f, 0), false);
 		int p1 = addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
 		addSpring(p0, p1, 0.5);
@@ -84,7 +84,7 @@ void MassSpringSystemSimulator::externalForcesCalculations(float /*timeElapsed*/
 		Vec3 inputView = Vec3((float)mouseDiff.x, (float)-mouseDiff.y, 0);
 		Vec3 inputWorld = worldViewInv.transformVectorNormal(inputView);
 		// find a proper scale!
-		float inputScale = 30;
+		float inputScale = 0.1;
 		inputWorld = inputWorld * inputScale;
 		m_mouseForce = inputWorld;
 	}
