@@ -16,6 +16,11 @@ const char* MassSpringSystemSimulator::getIntegratorsStr() {
 void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 {
 	this->DUC = DUC;
+
+	TwAddVarRW(DUC->g_pTweakBar, "Stiffness", TW_TYPE_FLOAT, &m_fStiffness, " min=0 group='Simulation Params' label='Spring stiffness co-efficient'");
+	TwAddVarRW(DUC->g_pTweakBar, "Mass", TW_TYPE_FLOAT, &m_fMass, " min=0 group='Simulation Params' label='Mass of Points'");
+	TwAddVarRW(DUC->g_pTweakBar, "Damping", TW_TYPE_FLOAT, &m_fDamping, " min=0 group='Simulation Params' label='Damping of Spring'");
+	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3F, SetGravityCallback, GetGravityCallback , &m_externalForce, "group='Simulation Params' label='Gravity'");
 }
 
 void MassSpringSystemSimulator::reset()
@@ -157,6 +162,22 @@ Vec3 MassSpringSystemSimulator::getVelocityOfMassPoint(int index)
 void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 {
 	m_externalForce = force;
+}
+
+void TW_CALL MassSpringSystemSimulator::GetGravityCallback(void* value, void* clientData)
+{
+	
+	static_cast<float*> (value)[0] = static_cast<const Vec3*>(clientData)->x;
+	static_cast<float*> (value)[1] = static_cast<const Vec3*>(clientData)->y;
+	static_cast<float*> (value)[2] = static_cast<const Vec3*>(clientData)->z;
+	//cout << "Get called" << endl;
+}
+
+void TW_CALL MassSpringSystemSimulator::SetGravityCallback(const void* value, void* clientData)
+{
+	static_cast<Vec3*> (clientData)->x = static_cast<const float*> (value)[0];
+	static_cast<Vec3*> (clientData)->y = static_cast<const float*> (value)[1];
+	static_cast<Vec3*> (clientData)->z = static_cast<const float*> (value)[2];
 }
 
 void MassSpringSystemSimulator::computeForces() {

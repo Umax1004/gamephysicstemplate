@@ -52,6 +52,11 @@ public:
 	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
 	void applyExternalForce(Vec3 force);
+
+	//Tweakbar's Callbacks
+	static void TW_CALL GetGravityCallback(void* value, void* clientData);
+	static void TW_CALL SetGravityCallback(const void* value, void* clientData);
+	
 	
 	// Do Not Change
 	void setIntegrator(int integrator) {
@@ -81,5 +86,7 @@ private:
 	Point2D m_mouse{0};
 	Point2D m_trackmouse{0};
 	Point2D m_oldtrackmouse{0};
+
+	float externalForce[3] = { 0,0,0 };
 };
 #endif
