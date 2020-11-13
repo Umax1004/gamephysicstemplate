@@ -206,6 +206,10 @@ void MassSpringSystemSimulator::integrate(float ts) {
 	}
 	else if (m_iIntegrator == MIDPOINT)
 		integrateMidpoint(ts);
+	else if (m_iIntegrator == LEAPFROG) {
+		integrateVelocitiesEuler(ts);
+		integratePositionsEuler(ts);
+	}
 	else
 		throw "Not implemented";
 }
