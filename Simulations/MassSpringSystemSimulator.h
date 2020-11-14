@@ -56,6 +56,8 @@ public:
 	//Tweakbar's Callbacks
 	static void TW_CALL GetGravityCallback(void* value, void* clientData);
 	static void TW_CALL SetGravityCallback(const void* value, void* clientData);
+
+	void setTimestepVariable(float& timestep);
 	
 	
 	// Do Not Change
@@ -88,5 +90,13 @@ private:
 	Point2D m_oldtrackmouse{0};
 
 	float externalForce[3] = { 0,0,0 };
+
+	//Timestep Variable
+	float* m_fTimestep;
+
+	//For 1st result print
+	bool isFirst = true;
+
+	int m_iTestCase;
 };
 #endif

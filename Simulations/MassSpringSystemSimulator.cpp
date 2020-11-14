@@ -6,7 +6,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 }
 
 const char* MassSpringSystemSimulator::getTestCasesStr() {
-	return "PENDULUM";
+	return "PENDULUM,DEMO,COMPLEX";
 }
 
 const char* MassSpringSystemSimulator::getIntegratorsStr() {
@@ -61,6 +61,8 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
 	m_vPoints.clear();
 	m_vSprings.clear();
+	*m_fTimestep = 0.001f;
+	m_iTestCase = testCase;
 
 	if (testCase == 0) { // Pendulum
 		setMass(1.0f);
@@ -71,6 +73,23 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		int p1 = addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
 		addSpring(p0, p1, 0.5);
 	}
+	else if (testCase == 2) { //Complex 
+		//TO DO
+
+	}
+	else if (testCase == 1) { // Basic Mass Spring
+		setMass(10.0f);
+		setDampingFactor(0);
+		setStiffness(40.0f);
+		applyExternalForce(Vec3());
+		int p0 = addMassPoint(Vec3(0, 0, 0), Vec3(-1, 0, 0), false);
+		int p1 = addMassPoint(Vec3(0, 2, 0), Vec3(1, 0, 0), false);
+		addSpring(p0, p1, 1);
+		*m_fTimestep = 0.005f;
+		isFirst = true;
+	}
+	else
+		throw "Not implemented";
 }
 
 /*
@@ -180,6 +199,11 @@ void TW_CALL MassSpringSystemSimulator::SetGravityCallback(const void* value, vo
 	static_cast<Vec3*> (clientData)->z = static_cast<const float*> (value)[2];
 }
 
+void MassSpringSystemSimulator::setTimestepVariable(float& timestep)
+{
+	m_fTimestep = &timestep;
+}
+
 void MassSpringSystemSimulator::computeForces() {
 	for (auto& point : m_vPoints)
 		point.force = m_mouseForce + m_externalForce - m_fDamping * point.velocity;
@@ -203,9 +227,29 @@ void MassSpringSystemSimulator::integrate(float ts) {
 	if (m_iIntegrator == EULER) {
 		integratePositionsEuler(ts);
 		integrateVelocitiesEuler(ts);
+		if (isFirst && m_iTestCase == 1)
+		{
+			cout << "Result of Euler's Method" << endl;
+			for (int i = 0; i < m_vPoints.size(); i++)
+			{
+				cout << "Point " << i << " Position: " << m_vPoints[i].position << " Velocity: " << m_vPoints[i].velocity << endl;
+			}
+			isFirst = false;
+		}
 	}
 	else if (m_iIntegrator == MIDPOINT)
+	{
 		integrateMidpoint(ts);
+		if (isFirst && m_iTestCase == 1)
+		{
+			cout << "Result of Midpoint's Method" << endl;
+			for (int i = 0; i < m_vPoints.size(); i++)
+			{
+				cout << "Point " << i << " Position: " << m_vPoints[i].position << " Velocity: " << m_vPoints[i].velocity << endl;
+			}
+			isFirst = false;
+		}
+	}
 	else if (m_iIntegrator == LEAPFROG) {
 		integrateVelocitiesEuler(ts);
 		integratePositionsEuler(ts);
