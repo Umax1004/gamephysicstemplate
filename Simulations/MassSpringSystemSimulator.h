@@ -66,14 +66,6 @@ public:
 	}
 
 private:
-	void computeForces();
-	Vec3 computeElasticForce(Spring s);
-	void integrate(float ts);
-	void integrateMidpoint(float ts);
-	void integratePositionsEuler(float ts);
-	void integrateVelocitiesEuler(float ts);
-
-private:
 	// Data Attributes
 	float m_fMass=1;
 	float m_fStiffness=1;
@@ -98,5 +90,13 @@ private:
 	bool isFirst = true;
 
 	int m_iTestCase;
+
+	// Functions
+	void computeForces();
+	Vec3 computeElasticForce(Spring s);
+	void integrate(float ts);
+	void integrateMidpoint(float ts);
+	void integratePositionsEuler(float ts);
+	void integrateVelocitiesEuler(float ts);
 };
 #endif
