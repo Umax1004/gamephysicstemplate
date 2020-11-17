@@ -205,8 +205,10 @@ void MassSpringSystemSimulator::setTimestepVariable(float& timestep)
 }
 
 void MassSpringSystemSimulator::computeForces() {
-	for (auto& point : m_vPoints)
+	for (auto& point : m_vPoints) {
 		point.force = m_mouseForce + m_externalForce - m_fDamping * point.velocity;
+		// TODO add mouse force for the nearest point to the mouse rather than to every point
+	}
 	for (size_t i = 0; i < m_vSprings.size(); i++) {
 		Vec3 force = computeElasticForce(m_vSprings[i]);
 		m_vPoints[m_vSprings[i].point1].force += force;
