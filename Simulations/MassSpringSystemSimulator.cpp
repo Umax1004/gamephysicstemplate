@@ -77,11 +77,11 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		
 		setMass(0.5f);
 		setDampingFactor(0.5);
-		setStiffness(450.0f);
+		setStiffness(500.0f);
 		applyExternalForce(Vec3{ 0, -3, 0 });
 
 		const int massPointsAmount = 10;
-		const float wholeSpringLength = 0.8f;
+		const float wholeSpringLength = 0.6f;
 		float x = 0.5f;
 		float y = 0.5f;
 		const float step = 1.f / static_cast<float>(massPointsAmount);
@@ -287,7 +287,12 @@ void MassSpringSystemSimulator::integratePositionsEuler(float ts) {
 		if (!point.isFixed)
 		{	
 			point.position += point.velocity * ts;
-			point.position.y = std::max(point.position.y, -0.75); // TODO: More advanced collision detection. See the description PDF.
+			double top = 0.5, bottom = -0.5;//, left = -0.5, right = 0.5;
+			point.position.y = std::max(point.position.y, bottom);
+			point.position.y = std::min(point.position.y, top);
+			// point.position.x = std::max(point.position.x, left);
+			// point.position.x = std::min(point.position.x, right);
+			// TODO: More advanced collision detection. See the description PDF.
 		}
 	}
 }
