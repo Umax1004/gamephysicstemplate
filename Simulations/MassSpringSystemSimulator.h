@@ -22,7 +22,6 @@ public:
 	Vec3  force;
 	Vec3 size;
 	bool  isFixed;
-	Vec3 bouncingForce;
 };
 
 
@@ -99,5 +98,6 @@ private:
 	void integrateMidpoint(float ts);
 	void integratePositionsEuler(float ts);
 	void integrateVelocitiesEuler(float ts);
+	void resolveCollisions();
 };
 #endif

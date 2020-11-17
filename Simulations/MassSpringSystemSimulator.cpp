@@ -179,6 +179,15 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
 	computeForces();
 	integrate(timeStep);
+	resolveCollisions();
+}
+
+void MassSpringSystemSimulator::resolveCollisions() {
+	const double GROUND_BOUNCINESS = 0.75;
+	for (Point& point : m_vPoints) {
+		if (point.position.y < -0.5 && point.velocity.y < 0)
+			point.velocity.y *= -1 * GROUND_BOUNCINESS;
+	}
 }
 
 void MassSpringSystemSimulator::onClick(int x, int y)
@@ -268,17 +277,7 @@ void MassSpringSystemSimulator::setTimestepVariable(float& timestep)
 
 void MassSpringSystemSimulator::computeForces() {
 	for (auto& point : m_vPoints) {
-		if (m_iTestCase == 2)
-		{
-			point.force = m_mouseForce + m_externalForce - m_fDamping * point.velocity + point.bouncingForce;
-			const double bouncingForceDamping = 0.5; // TODO may be configured better \ refactored
-			point.bouncingForce.x = (point.bouncingForce.x > 0 ? 1 : -1) * (std::abs(point.bouncingForce.x) - bouncingForceDamping);
-			point.bouncingForce.y = (point.bouncingForce.y > 0 ? 1 : -1) * (std::abs(point.bouncingForce.y) - bouncingForceDamping);
-		}
-		else
-		{
-			point.force = m_mouseForce + m_externalForce - m_fDamping * point.velocity;
-		}
+		point.force = m_mouseForce + m_externalForce - m_fDamping * point.velocity;
 	}
 	for (size_t i = 0; i < m_vSprings.size(); i++) {
 		Vec3 force = computeElasticForce(m_vSprings[i]);
@@ -333,48 +332,9 @@ void MassSpringSystemSimulator::integrate(float ts) {
 
 void MassSpringSystemSimulator::integratePositionsEuler(float ts) {
 	for (auto& point : m_vPoints) {
-		
-		if (m_iTestCase == 2)
+		if (!point.isFixed)
 		{
-			if (point.isFixed)
-			{
-				continue;
-			}
-
-			const double top = 0.5 - point.size.x, bottom = -0.5 + point.size.x, left = -0.5 + point.size.x, right = 0.5 - point.size.x;
-			const float y = point.position.y, x = point.position.x;
-			const float bouncingForce = 15; // TODO may be configured better \ refactored
-			if (y > top)
-			{
-				point.position.y = top;
-				point.bouncingForce.y = -bouncingForce;
-			}
-			else if (y < bottom)
-			{
-				point.position.y = bottom;
-				point.bouncingForce.y = bouncingForce;
-			}
-
-			if (x > right)
-			{
-				point.position.x = right;
-				point.bouncingForce.x = -bouncingForce;
-			}
-			else if (x < left)
-			{
-				point.position.x = left;
-				point.bouncingForce.x = bouncingForce;
-			}
 			point.position += point.velocity * ts;
-		}
-		
-		else
-		{
-			if (!point.isFixed)
-			{
-				point.position += point.velocity * ts;
-				point.position.y = std::max(point.position.y, -0.90);
-			}
 		}
 	}
 }
