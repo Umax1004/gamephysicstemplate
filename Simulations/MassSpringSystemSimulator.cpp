@@ -107,7 +107,7 @@ void MassSpringSystemSimulator::externalForcesCalculations(float /*timeElapsed*/
 		worldViewInv = worldViewInv.inverse();
 		Vec3 inputView = Vec3((float)mouseDiff.x, (float)-mouseDiff.y, 0);
 		Vec3 inputWorld = worldViewInv.transformVectorNormal(inputView);
-		// find a proper scale!
+		// TODO find a proper scale!
 		float inputScale = 0.1;
 		inputWorld = inputWorld * inputScale;
 		m_mouseForce = inputWorld;
