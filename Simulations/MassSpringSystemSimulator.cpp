@@ -75,14 +75,25 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 	}
 	else if (m_iTestCase == 2) { //Complex
 		
-		setMass(1.0f);
-		setDampingFactor(1);
-		setStiffness(30.0f);
+		setMass(0.5f);
+		setDampingFactor(0.5);
+		setStiffness(450.0f);
 		applyExternalForce(Vec3{ 0, -3, 0 });
-		int p0 = addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(), true);
-		int p1 = addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(), false);
-		addSpring(p0, p1, 0.5);
-		
+
+		const int massPointsAmount = 10;
+		const float wholeSpringLength = 0.8f;
+		float x = 0.5f;
+		float y = 0.5f;
+		const float step = 1.f / static_cast<float>(massPointsAmount);
+		int previousPointId = addMassPoint(Vec3(x, y, 0), Vec3(), Vec3(0.01), true);
+		for (int i = 0; i < massPointsAmount; ++i)
+		{
+			x -= step;
+			const int currentPointId = addMassPoint(Vec3(x, y, 0), Vec3(), Vec3(0.01), false);
+			addSpring(previousPointId, currentPointId, wholeSpringLength / massPointsAmount);
+			previousPointId = currentPointId;
+		}
+
 	}
 	else if (m_iTestCase == 1) { // Basic Mass Spring
 		setMass(10.0f);
