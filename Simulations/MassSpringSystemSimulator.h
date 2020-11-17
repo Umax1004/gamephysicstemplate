@@ -89,9 +89,7 @@ private:
 	//For 1st result print
 	bool isFirst = true;
 
-	int m_iTestCase;
-
-	// Functions
+	// Methods
 	void computeForces();
 	Vec3 computeElasticForce(Spring s);
 	void integrate(float ts);

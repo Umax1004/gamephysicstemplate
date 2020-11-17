@@ -64,7 +64,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 	*m_fTimestep = 0.001f;
 	m_iTestCase = testCase;
 
-	if (testCase == 0) { // Pendulum
+	if (m_iTestCase == 0) { // Pendulum
 		setMass(1.0f);
 		setDampingFactor(1);
 		setStiffness(30.0f);
@@ -73,11 +73,11 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		int p1 = addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
 		addSpring(p0, p1, 0.5);
 	}
-	else if (testCase == 2) { //Complex 
+	else if (m_iTestCase == 2) { //Complex 
 		//TO DO
 
 	}
-	else if (testCase == 1) { // Basic Mass Spring
+	else if (m_iTestCase == 1) { // Basic Mass Spring
 		setMass(10.0f);
 		setDampingFactor(0);
 		setStiffness(40.0f);
