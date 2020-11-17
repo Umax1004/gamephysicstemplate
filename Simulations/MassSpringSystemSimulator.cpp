@@ -108,8 +108,9 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 	else if (m_iTestCase == 3) {
 		setMass(1.0f);
 		setDampingFactor(1);
-		setStiffness(30.0f);
-		applyExternalForce(Vec3{ 0, -3, 0 });
+		setStiffness(300.0f);
+		*m_fTimestep = 0.005f;
+		applyExternalForce(Vec3{ 0, -9.8, 0 });
 		for (int y = 0; y < 3; y++)
 		{
 			for (int x = 1; x >= -1; x--)
@@ -164,8 +165,8 @@ void MassSpringSystemSimulator::externalForcesCalculations(float /*timeElapsed*/
 		worldViewInv = worldViewInv.inverse();
 		Vec3 inputView = Vec3((float)mouseDiff.x, (float)-mouseDiff.y, 0);
 		Vec3 inputWorld = worldViewInv.transformVectorNormal(inputView);
-		// TODO find a proper scale!
-		float inputScale = 0.1;
+		// TODO find a proper scale! Rather Turn it into a parameter
+		float inputScale = 0.01;
 		inputWorld = inputWorld * inputScale;
 		m_mouseForce = inputWorld;
 	}
@@ -372,7 +373,7 @@ void MassSpringSystemSimulator::integratePositionsEuler(float ts) {
 			if (!point.isFixed)
 			{
 				point.position += point.velocity * ts;
-				point.position.y = std::max(point.position.y, -0.75);
+				point.position.y = std::max(point.position.y, -0.90);
 			}
 		}
 	}
