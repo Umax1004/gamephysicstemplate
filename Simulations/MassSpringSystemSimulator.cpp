@@ -54,7 +54,6 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 		DUC->drawSphere(m_vPoints[i].position, m_vPoints[i].size);
 	}
 
-	
 }
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
@@ -107,6 +106,44 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		isFirst = true;
 	}
 	else if (m_iTestCase == 3) {
+		setMass(1.0f);
+		setDampingFactor(1);
+		setStiffness(30.0f);
+		applyExternalForce(Vec3{ 0, -3, 0 });
+		for (int y = 0; y < 3; y++)
+		{
+			for (int x = 1; x >= -1; x--)
+			{
+				for (int z = -1; z <= 1; z++)
+				{
+					int temp = addMassPoint(Vec3(x,y,z), Vec3(), false);
+				}
+			}
+		}
+
+		for (int y = 0; y <= 2; y++)
+		{
+			for (int x = 0; x <= 2; x++)
+			{
+				for (int z = 0; z <= 2; z++)
+				{
+					if (y != 0)
+					{
+						addSpring((y * 9) + (x * 3) + z, ((y - 1) * 9) + (x * 3) + z, 1);
+					}
+					if (x != 2)
+					{
+						addSpring((y * 9) + (x * 3) + z, (y * 9) + ((x+1) * 3) + z, 1);
+					}
+					if (z != 2)
+					{
+						addSpring((y * 9) + (x * 3) + z, (y * 9) + (x * 3) + (z+1), 1);
+					}
+					//addSpring(p0, p1, );
+				}
+			}
+		}
+		
 	}
 	else
 		throw "Not implemented";
