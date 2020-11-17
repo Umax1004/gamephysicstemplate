@@ -51,7 +51,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 
 	for (int i = 0; i < m_vPoints.size(); i++)
 	{
-		DUC->drawSphere(m_vPoints[i].position, Vec3(0.1));
+		DUC->drawSphere(m_vPoints[i].position, m_vPoints[i].size);
 	}
 
 	
@@ -73,9 +73,16 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		int p1 = addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
 		addSpring(p0, p1, 0.5);
 	}
-	else if (m_iTestCase == 2) { //Complex 
-		//TO DO
-
+	else if (m_iTestCase == 2) { //Complex
+		
+		setMass(1.0f);
+		setDampingFactor(1);
+		setStiffness(30.0f);
+		applyExternalForce(Vec3{ 0, -3, 0 });
+		int p0 = addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(), true);
+		int p1 = addMassPoint(Vec3(-0.5, 0.5f, 0), Vec3(), false);
+		addSpring(p0, p1, 0.5);
+		
 	}
 	else if (m_iTestCase == 1) { // Basic Mass Spring
 		setMass(10.0f);
@@ -151,7 +158,11 @@ void MassSpringSystemSimulator::setDampingFactor(float damping)
 }
 int MassSpringSystemSimulator::addMassPoint(Vec3 position, Vec3 velocity, bool isFixed)
 {
-	m_vPoints.push_back(Point{ position, velocity, {} , isFixed });
+	return addMassPoint(position, velocity, Vec3(0.1), isFixed);
+}
+int MassSpringSystemSimulator::addMassPoint(Vec3 position, Vec3 velocity, Vec3 size, bool isFixed)
+{
+	m_vPoints.push_back(Point{ position, velocity, {} , size, isFixed });
 	return m_vPoints.size()-1;
 }
 void MassSpringSystemSimulator::addSpring(int masspoint1, int masspoint2, float initialLength)
