@@ -6,7 +6,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 }
 
 const char* MassSpringSystemSimulator::getTestCasesStr() {
-	return "PENDULUM,DEMO,COMPLEX,CUBE";
+	return "PENDULUM,DEMO,COMPLEX,CUBE,BOUNCE";
 }
 
 const char* MassSpringSystemSimulator::getIntegratorsStr() {
@@ -72,8 +72,19 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		int p1 = addMassPoint(Vec3(0.0, 0.5f, 0), Vec3(0.0, 0.0f, 0), true);
 		addSpring(p0, p1, 0.5);
 	}
+	else if (m_iTestCase == 1) { // Basic Mass Spring
+		setMass(10.0f);
+		setDampingFactor(0);
+		setStiffness(40.0f);
+		applyExternalForce(Vec3());
+		int p0 = addMassPoint(Vec3(0, 0, 0), Vec3(-1, 0, 0), false);
+		int p1 = addMassPoint(Vec3(0, 2, 0), Vec3(1, 0, 0), false);
+		addSpring(p0, p1, 1);
+		*m_fTimestep = 0.005f;
+		isFirst = true;
+	}
 	else if (m_iTestCase == 2) { //Complex
-		
+
 		setMass(0.5f);
 		setDampingFactor(0.5);
 		setStiffness(500.0f);
@@ -94,18 +105,7 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		}
 
 	}
-	else if (m_iTestCase == 1) { // Basic Mass Spring
-		setMass(10.0f);
-		setDampingFactor(0);
-		setStiffness(40.0f);
-		applyExternalForce(Vec3());
-		int p0 = addMassPoint(Vec3(0, 0, 0), Vec3(-1, 0, 0), false);
-		int p1 = addMassPoint(Vec3(0, 2, 0), Vec3(1, 0, 0), false);
-		addSpring(p0, p1, 1);
-		*m_fTimestep = 0.005f;
-		isFirst = true;
-	}
-	else if (m_iTestCase == 3) {
+	else if (m_iTestCase == 3) { // Cube
 		setMass(1.0f);
 		setDampingFactor(1);
 		setStiffness(300.0f);
@@ -145,6 +145,12 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 			}
 		}
 		
+	}
+	else if (m_iTestCase == 4) {
+		setMass(0.5f);
+		setDampingFactor(0.5);
+		applyExternalForce(Vec3{ 0, -9.8, 0 });
+		addMassPoint({ 0, 0.5, 0 }, {}, false);
 	}
 	else
 		throw "Not implemented";
