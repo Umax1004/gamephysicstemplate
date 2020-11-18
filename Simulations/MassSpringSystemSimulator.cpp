@@ -185,8 +185,10 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 void MassSpringSystemSimulator::resolveCollisions() {
 	const double GROUND_BOUNCINESS = 0.75;
 	for (Point& point : m_vPoints) {
-		if (point.position.y < -0.5 && point.velocity.y < 0)
+		if (point.position.y < -0.5 && point.velocity.y < 0) {
 			point.velocity.y *= -1 * GROUND_BOUNCINESS;
+			point.position.y = -0.5;
+		}
 	}
 }
 
