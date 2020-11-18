@@ -75,6 +75,7 @@ private:
 	int m_iIntegrator=EULER;
 	std::vector<Point> m_vPoints;
 	std::vector<Spring> m_vSprings;
+	float m_fFloor = -0.9;
 
 	// UI Attributes
 	Vec3 m_externalForce;

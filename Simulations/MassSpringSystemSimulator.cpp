@@ -32,22 +32,22 @@ void MassSpringSystemSimulator::reset()
 
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
+	PrimitiveBatch<VertexPositionColor> g_pPrimitiveBatchPositionColor = PrimitiveBatch<VertexPositionColor>(pd3dImmediateContext);
+
+	g_pPrimitiveBatchPositionColor.Begin();
 	for (int i = 0; i < m_vSprings.size(); i++)
 	{
 		//cout << "Line" << m_vPoints[m_vSprings[i].point1].position << "and" << m_vPoints[m_vSprings[i].point2].position << endl;
 		//DUC->drawLine(m_vPoints[m_vSprings[i].point1].position, Vec3(1), m_vPoints[m_vSprings[i].point2].position, Vec3(1));
 		//DUC->endLine();
-		PrimitiveBatch<VertexPositionColor> g_pPrimitiveBatchPositionColor = PrimitiveBatch<VertexPositionColor>(pd3dImmediateContext);
-
-		g_pPrimitiveBatchPositionColor.Begin();
 
 		VertexPositionColor v1(m_vPoints[m_vSprings[i].point1].position.toDirectXVector(), Colors::Yellow);
 		VertexPositionColor v2(m_vPoints[m_vSprings[i].point2].position.toDirectXVector(), Colors::Yellow);
 
 		g_pPrimitiveBatchPositionColor.DrawLine(v1, v2);
 
-		g_pPrimitiveBatchPositionColor.End();
 	}
+	g_pPrimitiveBatchPositionColor.End();
 
 	for (int i = 0; i < m_vPoints.size(); i++)
 	{
@@ -185,8 +185,9 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 void MassSpringSystemSimulator::resolveCollisions() {
 	const double GROUND_BOUNCINESS = 0.75;
 	for (Point& point : m_vPoints) {
-		if (point.position.y < -0.5 && point.velocity.y < 0)
+		if (point.position.y < m_fFloor && point.velocity.y < 0)
 			point.velocity.y *= -1 * GROUND_BOUNCINESS;
+			point.position.y = std::max(point.position.y, (Real)m_fFloor);
 	}
 }
 
