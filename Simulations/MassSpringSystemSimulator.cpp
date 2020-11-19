@@ -80,8 +80,9 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		int p0 = addMassPoint(Vec3(0, 0, 0), Vec3(-1, 0, 0), false);
 		int p1 = addMassPoint(Vec3(0, 2, 0), Vec3(1, 0, 0), false);
 		addSpring(p0, p1, 1);
-		*m_fTimestep = 0.005f;
+		*m_fTimestep = 0.1f;
 		isFirst = true;
+		setIntegrator(EULER);
 	}
 	else if (m_iTestCase == 2) { //Complex
 
