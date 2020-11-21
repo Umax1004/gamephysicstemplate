@@ -308,39 +308,35 @@ void CALLBACK OnFrameMove( double dTime, float fElapsedTime, void* pUserContext 
 void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
                                   double fTime, float fElapsedTime, void* pUserContext )
 {
-	const double TARGET_FPS = 1000;
-	static double lastTime = 0;
+	const double TARGET_FPS = 1000; // This is more like target simulation-steps-per-second
 	double targetElapsedTime = 1 / TARGET_FPS;
-	double filteredElapsedTime = 0;
-	static long frameCnt = 0;
-	frameCnt++;
-	static double skip = 0; // The number of consecutive frames to skip
-	static bool prevSkipped = false; // Whether the previous frame was skipped
+	const int MAX_SKIP = 50; // Do not skip more than X consecutive frames
+	static double lastTime = NAN;
+	static int skip_target = 0; // How many frames to skip per rendered frame.
+	static int skip = 0; // How many skips left before we render a new frame
 	if (skip > 0) {
 		skip--;
-		prevSkipped = true;
 		return; // Skip this frame
 	}
-	if (frameCnt > 1) {
-		if (frameCnt == 2)
-			filteredElapsedTime = fTime - lastTime;
-		else {
-			if (prevSkipped == false) { // If the previous frame was skipped, ignore lastTime.
-				filteredElapsedTime *= 0.1;
-				filteredElapsedTime += (fTime - lastTime) * 0.9;
-			}
-			if (filteredElapsedTime > targetElapsedTime) { // System too slow. Drop frames
-				skip = filteredElapsedTime / targetElapsedTime - 1 -1; // Additional -1 because we skip this frame
-				//cout << skip << endl;
-				prevSkipped = true;
-				return; // Skip this frame
-			}
-			else { // System too fast
-				Sleep(filteredElapsedTime - targetElapsedTime);
+	if (lastTime != NAN) {
+		if ((fTime - lastTime) / (skip_target+1) > targetElapsedTime) { // System too slow. Drop more frames
+			if (skip_target < MAX_SKIP)
+				skip_target++;
+			else {
+				static bool printed = false;
+				if (printed == false)
+					cout << "Warning: Unable to satisfy the target FPS. Won't drop more frames." << endl;
+				printed = true;
 			}
 		}
+		else { // System too fast
+			if (skip_target > 0)
+				skip_target--;
+			if (skip_target < 0)
+				skip_target = 0;
+		}
 	}
-	prevSkipped = false;
+	skip = skip_target;
 	lastTime = fTime;
     HRESULT hr;
 
