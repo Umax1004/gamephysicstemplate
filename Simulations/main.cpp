@@ -308,6 +308,40 @@ void CALLBACK OnFrameMove( double dTime, float fElapsedTime, void* pUserContext 
 void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
                                   double fTime, float fElapsedTime, void* pUserContext )
 {
+	const double TARGET_FPS = 1000;
+	static double lastTime = 0;
+	double targetElapsedTime = 1 / TARGET_FPS;
+	double filteredElapsedTime = 0;
+	static long frameCnt = 0;
+	frameCnt++;
+	static double skip = 0; // The number of consecutive frames to skip
+	static bool prevSkipped = false; // Whether the previous frame was skipped
+	if (skip > 0) {
+		skip--;
+		prevSkipped = true;
+		return; // Skip this frame
+	}
+	if (frameCnt > 1) {
+		if (frameCnt == 2)
+			filteredElapsedTime = fTime - lastTime;
+		else {
+			if (prevSkipped == false) { // If the previous frame was skipped, ignore lastTime.
+				filteredElapsedTime *= 0.1;
+				filteredElapsedTime += (fTime - lastTime) * 0.9;
+			}
+			if (filteredElapsedTime > targetElapsedTime) { // System too slow. Drop frames
+				skip = filteredElapsedTime / targetElapsedTime - 1 -1; // Additional -1 because we skip this frame
+				//cout << skip << endl;
+				prevSkipped = true;
+				return; // Skip this frame
+			}
+			else { // System too fast
+				Sleep(filteredElapsedTime - targetElapsedTime);
+			}
+		}
+	}
+	prevSkipped = false;
+	lastTime = fTime;
     HRESULT hr;
 
 	// Clear render target and depth stencil
