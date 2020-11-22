@@ -19,6 +19,7 @@ using namespace DirectX;
 using namespace GamePhysics;
 
 //#define ADAPTIVESTEP
+//#define ENABLE_WARP // Enable frame warping to achieve a set sim-step-per-real-time-second target
 
 //#define TEMPLATE_DEMO
 #define MASS_SPRING_SYSTEM
@@ -244,6 +245,34 @@ LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	return 0;
 }
 
+uint64_t getWarp(double dTime, float fElapsedTime) {
+#ifdef ENABLE_WARP
+	const double TARGET_SSPS = 2000; // Target simulation-steps-per-second
+	const int MAX_WARP = 1000;
+	double targetElapsedTime = 1 / TARGET_SSPS;
+	static double lastTime = NAN;
+	static uint64_t warp = 1; // How many sim iterations to do per rendered frame.
+	if (lastTime != NAN) {
+		warp *= fElapsedTime / warp / targetElapsedTime;
+		if (warp > MAX_WARP)
+			warp = MAX_WARP;
+		if (warp < 1)
+			warp = 1;
+	}
+
+	static double lastPrinted = 0;
+	if (dTime - lastPrinted >= 3) {
+		lastPrinted = dTime;
+		cout << "Warp: " << warp << endl;
+	}
+
+	lastTime = dTime;
+
+	return warp;
+#else
+	return 1;
+#endif
+}
 
 //--------------------------------------------------------------------------------------
 // Handle updates to the scene
@@ -285,29 +314,7 @@ void CALLBACK OnFrameMove( double dTime, float fElapsedTime, void* pUserContext 
 			timeAcc -= g_fTimestep;
 		}
 #else
-
-
-		const double TARGET_SSPS = 2000; // Target simulation-steps-per-second
-		const int MAX_WARP = 1000;
-		double targetElapsedTime = 1 / TARGET_SSPS;
-		static double lastTime = NAN;
-		static uint64_t warp = 1; // How many sim iterations to do per rendered frame.
-		if (lastTime != NAN) {
-			warp *= (dTime - lastTime) / warp / targetElapsedTime;
-			if (warp > MAX_WARP)
-				warp = MAX_WARP;
-			if (warp < 1)
-				warp = 1;
-		}
-
-		static double lastPrinted = 0;
-		if (dTime - lastPrinted >= 3) {
-			lastPrinted = dTime;
-			cout << "Warp: " << warp << endl;
-		}
-
-		lastTime = dTime;
-
+		uint64_t warp = getWarp(dTime, fElapsedTime);
 		for (int i = 0; i < warp; i++) {
 			g_pSimulator->externalForcesCalculations(g_fTimestep);
 			g_pSimulator->simulateTimestep(g_fTimestep);
