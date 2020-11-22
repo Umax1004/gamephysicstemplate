@@ -285,8 +285,33 @@ void CALLBACK OnFrameMove( double dTime, float fElapsedTime, void* pUserContext 
 			timeAcc -= g_fTimestep;
 		}
 #else
-		g_pSimulator->externalForcesCalculations(g_fTimestep);
-		g_pSimulator->simulateTimestep(g_fTimestep);
+
+
+		const double TARGET_SSPS = 2000; // Target simulation-steps-per-second
+		const int MAX_WARP = 1000;
+		double targetElapsedTime = 1 / TARGET_SSPS;
+		static double lastTime = NAN;
+		static uint64_t warp = 1; // How many sim iterations to do per rendered frame.
+		if (lastTime != NAN) {
+			warp *= (dTime - lastTime) / warp / targetElapsedTime;
+			if (warp > MAX_WARP)
+				warp = MAX_WARP;
+			if (warp < 1)
+				warp = 1;
+		}
+
+		static double lastPrinted = 0;
+		if (dTime - lastPrinted >= 3) {
+			lastPrinted = dTime;
+			cout << "Warp: " << warp << endl;
+		}
+
+		lastTime = dTime;
+
+		for (int i = 0; i < warp; i++) {
+			g_pSimulator->externalForcesCalculations(g_fTimestep);
+			g_pSimulator->simulateTimestep(g_fTimestep);
+		}
 #endif
 	}else{
 		if(DXUTIsKeyDown(VK_SPACE))
@@ -308,36 +333,6 @@ void CALLBACK OnFrameMove( double dTime, float fElapsedTime, void* pUserContext 
 void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
                                   double fTime, float fElapsedTime, void* pUserContext )
 {
-	const double TARGET_FPS = 1000; // This is more like target simulation-steps-per-second
-	double targetElapsedTime = 1 / TARGET_FPS;
-	const int MAX_SKIP = 50; // Do not skip more than X consecutive frames
-	static double lastTime = NAN;
-	static int skip_target = 0; // How many frames to skip per rendered frame.
-	static int skip = 0; // How many skips left before we render a new frame
-	if (skip > 0) {
-		skip--;
-		return; // Skip this frame
-	}
-	if (lastTime != NAN) {
-		if ((fTime - lastTime) / (skip_target+1) > targetElapsedTime) { // System too slow. Drop more frames
-			if (skip_target < MAX_SKIP)
-				skip_target++;
-			else {
-				static bool printed = false;
-				if (printed == false)
-					cout << "Warning: Unable to satisfy the target FPS. Won't drop more frames." << endl;
-				printed = true;
-			}
-		}
-		else { // System too fast
-			if (skip_target > 0)
-				skip_target--;
-			if (skip_target < 0)
-				skip_target = 0;
-		}
-	}
-	skip = skip_target;
-	lastTime = fTime;
     HRESULT hr;
 
 	// Clear render target and depth stencil
