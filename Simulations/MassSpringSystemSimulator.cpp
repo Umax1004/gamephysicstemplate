@@ -82,7 +82,6 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		addSpring(p0, p1, 1);
 		*m_fTimestep = 0.005f;
 		isFirst = true;
-		setIntegrator(EULER);
 	}
 	else if (m_iTestCase == 2) { //Complex
 
