@@ -36,9 +36,9 @@ private:
 		double w = size.y;
 		double d = size.z;
 		XMFLOAT3X3 res{};
-		res._11 = 1/12*(h*h+d*d);
-		res._22 = 1/12*(w*w+d*d);
-		res._33 = 1/12*(w*w+h*h);
+		res._11 = 1.0/12*(h*h+d*d);
+		res._22 = 1.0/12*(w*w+d*d);
+		res._33 = 1.0/12*(w*w+h*h);
 		return res;
 	}
 };
