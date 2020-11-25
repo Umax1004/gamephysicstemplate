@@ -6,7 +6,7 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 
 const char* RigidBodySystemSimulator::getTestCasesStr()
 {
-	return "Demo";
+	return "Demo,Something,TESTCASEUSEDTORUNTEST";
 }
 
 void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
@@ -23,13 +23,42 @@ void RigidBodySystemSimulator::reset()
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
+	cout << bodies.size() << endl;
+	for (int i = 0; i < bodies.size(); i++)
+	{
+		XMMATRIX Rotation = XMMatrixRotationQuaternion(bodies[i].ang_pos.toDirectXQuat());
+		XMMATRIX Scale = XMMatrixScaling(bodies[i].size[0], bodies[i].size[1], bodies[i].size[2]);
+		XMMATRIX Translation = XMMatrixTranslation(bodies[i].pos[0], bodies[i].pos[1], bodies[i].pos[2]);
+		XMMATRIX ObjToWorld = Scale * Rotation * Translation;
+		DUC->drawRigidBody(ObjToWorld);
+		cout << "Position of " << i << " " << bodies[i].pos << endl;
+	}
 }
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 {
-	addRigidBody({0, 0, 0}, {3, 1, 1}, 10);
-	setVelocityOf(0, { 1, 0, 0 });
-	setOrientationOf(0, Quat{ 3.14 / 4, 3.14/4});
+	bodies.clear();
+	switch (testCase)
+	{
+	case 0:
+	{
+		addRigidBody({ 0, 0, 0 }, { 3, 1, 1 }, 10);
+		setVelocityOf(0, { 1, 0, 0 });
+		setOrientationOf(0, Quat{ 3.14 / 4, 3.14 / 4 });
+		break;
+	}
+	case 1:
+	{
+		addRigidBody(Vec3(-0.1f, -0.2f, 0.1f), Vec3(0.4f, 0.2f, 0.2f), 100.0f);
+		addRigidBody(Vec3(0.0f, 0.2f, 0.0f), Vec3(0.4f, 0.2f, 0.2f), 100.0);
+		setOrientationOf(1, Quat(Vec3(0.0f, 0.0f, 1.0f), (float)(M_PI) * 0.25f));
+		setVelocityOf(1, Vec3(0.0f, -0.1f, 0.05f));
+		break;
+	}
+	default:
+		break;
+	}
+	
 }
 
 void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
