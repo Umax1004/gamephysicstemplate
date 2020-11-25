@@ -16,19 +16,19 @@ public:
 	Quat ang_pos{0,0,0,1};
 	const Vec3 size;
 	const double inverse_mass;
-	const XMFLOAT3X3 inertia;
+	const XMFLOAT3X3 inverse_inertia;
 
 	Body(Vec3 pos, Vec3 size, double mass) :
 		pos(pos),
 		size(size),
 		inverse_mass(1 / mass),
-		inertia(getCuboidIntertia(size) * mass)
+		inverse_inertia(inverse(getCuboidIntertia(size) * mass))
 	{}
 	XMFLOAT3X3 getRotatedInverseIntertia() const {
 		auto r4x4 = ang_pos.getRotMat().toDirectXMatrix();
 		XMFLOAT3X3 r;
 		DirectX::XMStoreFloat3x3(&r, r4x4);
-		return r * inverse(inertia) * transpose(r);
+		return r * inverse_inertia * transpose(r);
 	}
 private:
 	static XMFLOAT3X3 getCuboidIntertia(Vec3 size) {
@@ -68,12 +68,12 @@ public:
 	void addRigidBody(Vec3 position, Vec3 size, int mass); // size in height, width, depth
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
-	void setTimestepVariable(float& timestep);
+	void setAngularVelocityOf(int i, Vec3 ang_vel);
 private:
-	void integratePosition();
-	void integrateVelocity();
-	void integrateOrientation();
-	void integrateAngularMomentum();
+	void integratePosition(float ts);
+	void integrateVelocity(float ts);
+	void integrateOrientation(float ts);
+	void integrateAngularMomentum(float ts);
 	void computeAngularVelocity();
 	void resolveCollisions();
 	void clearStateForNextIteration();
@@ -83,7 +83,6 @@ private:
 	// add your RigidBodySystem data members, for e.g.,
 	// RigidBodySystem * m_pRigidBodySystem; 
 	Vec3 m_externalForce;
-	float* m_fTimestep = nullptr;
 	std::vector<Body> bodies;
 
 	// UI Attributes

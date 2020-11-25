@@ -6,7 +6,7 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 
 const char* RigidBodySystemSimulator::getTestCasesStr()
 {
-	return "Demo,Something,TESTCASEUSEDTORUNTEST";
+	return "Demo,Collision,TESTCASEUSEDTORUNTEST,IAT";
 }
 
 void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
@@ -23,7 +23,7 @@ void RigidBodySystemSimulator::reset()
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
-	cout << bodies.size() << endl;
+	//cout << "Number of bodies: " << bodies.size() << endl;
 	for (int i = 0; i < bodies.size(); i++)
 	{
 		XMMATRIX Rotation = XMMatrixRotationQuaternion(bodies[i].ang_pos.toDirectXQuat());
@@ -31,7 +31,7 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 		XMMATRIX Translation = XMMatrixTranslation(bodies[i].pos[0], bodies[i].pos[1], bodies[i].pos[2]);
 		XMMATRIX ObjToWorld = Scale * Rotation * Translation;
 		DUC->drawRigidBody(ObjToWorld);
-		cout << "Position of " << i << " " << bodies[i].pos << endl;
+		//cout << "Position of " << i << " " << bodies[i].pos << endl;
 	}
 }
 
@@ -42,7 +42,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	{
 	case 0:
 	{
-		addRigidBody({ 0, 0, 0 }, { 3, 1, 1 }, 10);
+		addRigidBody({ 0, 0, 0 }, { 0.3, 0.1, 0.1 }, 10);
 		setVelocityOf(0, { 1, 0, 0 });
 		setOrientationOf(0, Quat{ 3.14 / 4, 3.14 / 4 });
 		break;
@@ -53,6 +53,18 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		addRigidBody(Vec3(0.0f, 0.2f, 0.0f), Vec3(0.4f, 0.2f, 0.2f), 100.0);
 		setOrientationOf(1, Quat(Vec3(0.0f, 0.0f, 1.0f), (float)(M_PI) * 0.25f));
 		setVelocityOf(1, Vec3(0.0f, -0.1f, 0.05f));
+		break;
+	}
+	case 2:
+	{
+		// Nothing. The unit tests use this and expect an empty scene.
+		break;
+	}
+	case 3:
+	{
+		addRigidBody({ 0, 0, 0 }, { 0.5, 0.2, 0.01 }, 10);
+		setAngularVelocityOf(0, { 5, 5, 50 });
+		//setOrientationOf(0, Quat{ 3.14 / 4, 3.14 / 4 });
 		break;
 	}
 	default:
@@ -67,33 +79,35 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
-	integratePosition();
-	integrateVelocity();
-	integrateOrientation();
-	integrateAngularMomentum();
+	integratePosition(timeStep);
+	integrateVelocity(timeStep);
+	integrateOrientation(timeStep);
+	integrateAngularMomentum(timeStep);
 	computeAngularVelocity();
 	resolveCollisions();
 	clearStateForNextIteration();
 }
 
-void RigidBodySystemSimulator::integratePosition() {
+void RigidBodySystemSimulator::integratePosition(float ts) {
 	for (Body& body : bodies)
-		body.pos += *m_fTimestep * body.vel;
+		body.pos += ts * body.vel;
 }
 
-void RigidBodySystemSimulator::integrateVelocity() {
+void RigidBodySystemSimulator::integrateVelocity(float ts) {
 	for (Body& body : bodies)
-		body.vel += *m_fTimestep * body.force * body.inverse_mass;
+		body.vel += ts * body.force * body.inverse_mass;
 }
 
-void RigidBodySystemSimulator::integrateOrientation() {
-	for (Body& body : bodies)
-		body.ang_pos += *m_fTimestep / 2 * Quat{ 0, body.ang_vel.x, body.ang_vel.y, body.ang_vel.z } *body.ang_pos;
+void RigidBodySystemSimulator::integrateOrientation(float ts) {
+	for (Body& body : bodies) {
+		body.ang_pos += ts / 2 * Quat{ 0, body.ang_vel.x, body.ang_vel.y, body.ang_vel.z } * body.ang_pos;
+		body.ang_pos = body.ang_pos.unit();
+	}
 }
 
-void RigidBodySystemSimulator::integrateAngularMomentum() {
+void RigidBodySystemSimulator::integrateAngularMomentum(float ts) {
 	for (Body& body : bodies)
-		body.ang_mom += *m_fTimestep * body.torque;
+		body.ang_mom += ts * body.torque;
 }
 
 void RigidBodySystemSimulator::computeAngularVelocity() {
@@ -155,7 +169,9 @@ void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation) {
 void RigidBodySystemSimulator::setVelocityOf(int i, Vec3 velocity) {
 	bodies[i].vel = velocity;
 }
-void RigidBodySystemSimulator::setTimestepVariable(float& timestep)
-{
-	m_fTimestep = &timestep;
+void RigidBodySystemSimulator::setAngularVelocityOf(int i, Vec3 ang_vel) {
+	// We cannot just set ang_vel here, because it is used just as a cache and will be overwritten
+	auto inertia = inverse(bodies[i].getRotatedInverseIntertia());
+	bodies[i].ang_mom = inertia * ang_vel;
+	bodies[i].ang_vel = ang_vel;
 }

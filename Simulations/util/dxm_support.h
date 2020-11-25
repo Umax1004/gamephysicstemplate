@@ -5,6 +5,42 @@
 #include <directxmath.h>
 using namespace DirectX;
 
+inline std::ostream& operator<<(std::ostream& s, const XMFLOAT3X3& m) {
+	s << "[";
+	for (int row = 0; row < 3; row++) {
+		s << "[";
+		for (int col = 0; col < 3; col++) {
+			s << m(row, col);
+			if (col != 2)
+				s << ", ";
+		}
+		s << "]";
+		if (row != 2)
+			s << std::endl;
+	}
+	s << "]";
+	return s;
+}
+
+inline std::ostream& operator<<(std::ostream& s, const XMMATRIX& m) {
+	XMFLOAT4X4 tmp;
+	XMStoreFloat4x4(&tmp, m);
+	s << "[";
+	for (int row = 0; row < 4; row++) {
+		s << "[";
+		for (int col = 0; col < 4; col++) {
+			s << tmp(row, col);
+			if (col != 3)
+				s << ", ";
+		}
+		s << "]";
+		if (row != 3)
+			s << std::endl;
+	}
+	s << "]";
+	return s;
+}
+
 inline XMFLOAT3X3 operator*(XMFLOAT3X3 m, double s) {
 	for (int i = 0; i < 9; i++)
 		m.m[i / 3][i % 3] *= s;
@@ -35,7 +71,5 @@ inline XMFLOAT3X3 inverse(XMFLOAT3X3 m) {
 	DirectX::XMStoreFloat3x3(&m, res);
 	return m;
 }
-
-
 
 #endif

@@ -60,7 +60,6 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
 	m_vPoints.clear();
 	m_vSprings.clear();
-	*m_fTimestep = 0.001f;
 	m_iTestCase = testCase;
 
 	if (m_iTestCase == 0) { // Pendulum
@@ -80,7 +79,6 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		int p0 = addMassPoint(Vec3(0, 0, 0), Vec3(-1, 0, 0), false);
 		int p1 = addMassPoint(Vec3(0, 2, 0), Vec3(1, 0, 0), false);
 		addSpring(p0, p1, 1);
-		*m_fTimestep = 0.005f;
 		isFirst = true;
 	}
 	else if (m_iTestCase == 2) { //Complex
@@ -109,7 +107,6 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		setMass(1.0f);
 		setDampingFactor(1);
 		setStiffness(300.0f);
-		*m_fTimestep = 0.005f;
 		applyExternalForce(Vec3{ 0, -9.8, 0 });
 		for (int y = 0; y < 3; y++)
 		{
@@ -275,11 +272,6 @@ void TW_CALL MassSpringSystemSimulator::SetGravityCallback(const void* value, vo
 	static_cast<Vec3*> (clientData)->x = static_cast<const float*> (value)[0];
 	static_cast<Vec3*> (clientData)->y = static_cast<const float*> (value)[1];
 	static_cast<Vec3*> (clientData)->z = static_cast<const float*> (value)[2];
-}
-
-void MassSpringSystemSimulator::setTimestepVariable(float& timestep)
-{
-	m_fTimestep = &timestep;
 }
 
 void MassSpringSystemSimulator::computeForces() {
