@@ -60,9 +60,9 @@ inline Vec3 operator*(XMFLOAT3X3 a, Vec3 b) {
 }
 
 inline XMFLOAT3X3 transpose(XMFLOAT3X3 m) {
-	std::swap(m(1,2), m(2,1));
-	std::swap(m(1, 3), m(3, 1));
-	std::swap(m(2, 3), m(3, 2));
+	std::swap(m(0,1), m(1,0));
+	std::swap(m(0, 2), m(2, 0));
+	std::swap(m(1, 2), m(2, 1));
 	return m;
 }
 

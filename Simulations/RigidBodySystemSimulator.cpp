@@ -63,7 +63,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	case 3:
 	{
 		addRigidBody({ 0, 0, 0 }, { 0.5, 0.2, 0.01 }, 10);
-		setAngularVelocityOf(0, { 5, 5, 50 });
+		setAngularVelocityOf(0, { 5, 50, 5 });
 		//setOrientationOf(0, Quat{ 3.14 / 4, 3.14 / 4 });
 		break;
 	}
@@ -100,7 +100,7 @@ void RigidBodySystemSimulator::integrateVelocity(float ts) {
 
 void RigidBodySystemSimulator::integrateOrientation(float ts) {
 	for (Body& body : bodies) {
-		body.ang_pos += ts / 2 * Quat{ 0, body.ang_vel.x, body.ang_vel.y, body.ang_vel.z } * body.ang_pos;
+		body.ang_pos += ts / 2 * Quat{ body.ang_vel.x, body.ang_vel.y, body.ang_vel.z, 0 } * body.ang_pos;
 		body.ang_pos = body.ang_pos.unit();
 	}
 }
