@@ -63,8 +63,8 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	case 3:
 	{
 		addRigidBody({ 0, 0, 0 }, { 0.5, 0.2, 0.01 }, 10);
-		setAngularVelocityOf(0, { 5, 5, 50 });
-		//setAngularVelocityOf(0, { 5, 50, 5 });
+		//setAngularVelocityOf(0, { 5, -5, 50 });
+		setAngularVelocityOf(0, { 5, 50, 5 });
 		//setOrientationOf(0, Quat{ 3.14 / 4, 3.14 / 4 });
 		break;
 	}

@@ -32,12 +32,18 @@ public:
 	}
 private:
 	static XMFLOAT3X3 getCuboidIntertia(Vec3 size) {
-		double h = size.x;
-		double w = size.y;
+		double h = size.y;
+		double w = size.x;
 		double d = size.z;
-		XMFLOAT3X3 res{};
+		XMFLOAT3X3 res;
 		res._11 = 1.0/12*(h*h+d*d);
+		res._12 = 0;
+		res._13 = 0;
+		res._21 = 0;
 		res._22 = 1.0/12*(w*w+d*d);
+		res._23 = 0;
+		res._31 = 0;
+		res._32 = 0;
 		res._33 = 1.0/12*(w*w+h*h);
 		return res;
 	}
@@ -65,7 +71,7 @@ public:
 	Vec3 getLinearVelocityOfRigidBody(int i);
 	Vec3 getAngularVelocityOfRigidBody(int i);
 	void applyForceOnBody(int i, Vec3 loc, Vec3 force);
-	void addRigidBody(Vec3 position, Vec3 size, int mass); // size in height, width, depth
+	void addRigidBody(Vec3 position, Vec3 size, int mass); // size in {x, y, z}
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
 	void setAngularVelocityOf(int i, Vec3 ang_vel);

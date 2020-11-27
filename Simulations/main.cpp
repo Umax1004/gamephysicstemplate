@@ -247,7 +247,7 @@ LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 uint64_t getWarp(double dTime, float fElapsedTime) {
 #ifdef ENABLE_WARP
-	const double TARGET_SSPS = 300; // Target simulation-steps-per-second
+	const double TARGET_SSPS = 200; // Target simulation-steps-per-second
 	const int MAX_WARP = 1000;
 	double targetElapsedTime = 1 / TARGET_SSPS;
 	static double lastTime = NAN;
