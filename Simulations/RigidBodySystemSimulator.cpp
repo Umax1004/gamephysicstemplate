@@ -119,7 +119,59 @@ void RigidBodySystemSimulator::computeAngularVelocity() {
 }
 
 void RigidBodySystemSimulator::resolveCollisions() {
+	if (bodies.size() < 2)
+	{
+		return;
+	}
+	for (int i = 0; i < bodies.size() - 1; ++i)
+	{
+		Body a = bodies[i];
+		Mat4 MatrixA = a.getObjToWorldMat4Matrix();
 
+		for (auto j = i + 1; j < bodies.size(); ++j)
+		{
+			Body b = bodies[j];
+			Mat4 MatrixB = b.getObjToWorldMat4Matrix();
+
+			CollisionInfo ci = checkCollisionSAT(MatrixA, MatrixB);
+			if (ci.isValid)
+			{
+				// TODO Probably I will need to put here velocity of the center of mass before update and only then update it
+				// 1. Calculate velocities at collision point
+				const Vec3 centerOfMassVelA = a.vel;
+				const Vec3 centerOfMassVelB = b.vel;
+				const Vec3 collisionPoint = ci.collisionPointWorld;
+				const Vec3 collisionPosA = collisionPoint - a.pos;
+				const Vec3 collisionPosB = collisionPoint - b.pos;
+				const Vec3 collisionPointVelocityA = centerOfMassVelA + cross(a.ang_vel, collisionPosA);
+				const Vec3 collisionPointVelocityB = centerOfMassVelB + cross(b.ang_vel, collisionPosB);
+				// 2. Calculate relative velocity
+				const Vec3 relativeVelocity = collisionPointVelocityA - collisionPointVelocityB;
+				// 3. Fill in impulse formula
+				const Vec3 normalOfTheCollision = ci.normalWorld;
+				const float c = 0.5f;
+				const float numerator = -1*(1 + c) * dot(relativeVelocity, normalOfTheCollision);
+				const auto denominatorPartA = cross(a.inverse_inertia * cross(collisionPosA, normalOfTheCollision), collisionPosA);
+				const auto denominatorPartB = cross(b.inverse_inertia * cross(collisionPosB, normalOfTheCollision), collisionPosB);
+				const float denominator = a.inverse_mass + b.inverse_mass + dot(denominatorPartA + denominatorPartB, normalOfTheCollision);
+				const float impulse = numerator / denominator;
+				// 4. Apply impulse
+				const Vec3 newVelocityA = centerOfMassVelA + impulse * normalOfTheCollision * a.inverse_mass;
+				const Vec3 newVelocityB = centerOfMassVelB - impulse * normalOfTheCollision * b.inverse_mass;
+				const Vec3 newAngularMomentumA = a.ang_mom + cross(collisionPosA, impulse * normalOfTheCollision);
+				const Vec3 newAngularMomentumB = b.ang_mom - cross(collisionPosB, impulse * normalOfTheCollision);
+
+				a.vel = newVelocityA;
+				b.vel = newVelocityB;
+				a.ang_mom = newAngularMomentumA;
+				b.ang_mom = newAngularMomentumB;
+				
+				// cout << "Position of " << i << " " << a.pos << endl;
+				// cout << "Position of " << j << " " << b.pos << endl;
+				cout << "Has a collision at " << ci.collisionPointWorld << endl;
+			}
+		}
+	}
 }
 
 void RigidBodySystemSimulator::clearStateForNextIteration()

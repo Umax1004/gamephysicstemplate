@@ -2,6 +2,7 @@
 #define RIGIDBODYSYSTEMSIMULATOR_h
 #include "Simulator.h"
 #include "util/dxm_support.h"
+#include "collisionDetect.h"
 
 #define TESTCASEUSEDTORUNTEST 2
 
@@ -30,6 +31,27 @@ public:
 		DirectX::XMStoreFloat3x3(&r, r4x4);
 		return r * inverse_inertia * transpose(r);
 	}
+	XMMATRIX getXMMatrixRotationQuaternion() {
+		return XMMatrixRotationQuaternion(ang_pos.toDirectXQuat());
+	}
+	XMMATRIX getXMMatrixScaling() const {
+		return XMMatrixScaling(size[0], size[1], size[2]);
+	}
+	XMMATRIX getXMMatrixTranslation() const {
+		return XMMatrixTranslation(pos[0], pos[1], pos[2]);
+	}
+	XMMATRIX getObjToWorldMatrix() {
+		const XMMATRIX Rotation = getXMMatrixRotationQuaternion();
+		const XMMATRIX Scale = getXMMatrixScaling();
+		const XMMATRIX Translation = getXMMatrixTranslation();
+		const XMMATRIX ObjToWorld = Scale * Rotation * Translation;
+		return ObjToWorld;
+	}
+	GamePhysics::Mat4 getObjToWorldMat4Matrix() {
+		XMMATRIX ObjToWorld = getObjToWorldMatrix();
+		return GamePhysics::Mat4(ObjToWorld);
+	}
+
 private:
 	static XMFLOAT3X3 getCuboidIntertia(Vec3 size) {
 		double h = size.y;
