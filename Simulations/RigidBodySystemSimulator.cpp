@@ -49,10 +49,10 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	}
 	case 1:
 	{
-		addRigidBody(Vec3(-0.1f, -0.2f, 0.1f), Vec3(0.4f, 0.2f, 0.2f), 100.0f);
-		addRigidBody(Vec3(0.0f, 0.2f, 0.0f), Vec3(0.4f, 0.2f, 0.2f), 100.0);
-		setOrientationOf(1, Quat(Vec3(0.0f, 0.0f, 1.0f), (float)(M_PI) * 0.25f));
-		setVelocityOf(1, Vec3(0.0f, -0.1f, 0.05f));
+		addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
+		addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0);
+		setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
+		setVelocityOf(1, Vec3(0.0f, -0.2f, 0.00f));
 		break;
 	}
 	case 2:
@@ -136,7 +136,7 @@ void RigidBodySystemSimulator::resolveCollisions() {
 			CollisionInfo ci = checkCollisionSAT(MatrixA, MatrixB);
 			if (ci.isValid)
 			{
-				// TODO Probably I will need to put here velocity of the center of mass before update and only then update it
+				// TODO Verify with manual calculation
 				// 1. Calculate velocities at collision point
 				const Vec3 centerOfMassVelA = a.vel;
 				const Vec3 centerOfMassVelB = b.vel;
@@ -145,11 +145,30 @@ void RigidBodySystemSimulator::resolveCollisions() {
 				const Vec3 collisionPosB = collisionPoint - b.pos;
 				const Vec3 collisionPointVelocityA = centerOfMassVelA + cross(a.ang_vel, collisionPosA);
 				const Vec3 collisionPointVelocityB = centerOfMassVelB + cross(b.ang_vel, collisionPosB);
+
+				cout << "A position = " << a.pos << endl;
+				cout << "B position = " << b.pos << endl;
+				cout << "1 / A Inertia = " << a.inverse_inertia << endl;
+				cout << "1 / B Inertia = " << b.inverse_inertia << endl;
+				cout << "A velocity = " << a.vel << endl;
+				cout << "B velocity = " << b.vel << endl;
+				cout << "angularMomentumA = " << a.ang_mom << endl;
+				cout << "angularMomentumB = " << b.ang_mom << endl;
+				cout << "collisionPointWorld = " << collisionPoint << endl;
+				cout << "collisionPosA = " << collisionPosA << endl;
+				cout << "collisionPosB = " << collisionPosB << endl;
+				cout << "collisionPointVelocityA = " << collisionPointVelocityA << endl;
+				cout << "collisionPointVelocityB = " << collisionPointVelocityB << endl;
+				cout << "1/ mass A = " << a.inverse_mass << endl;
+				cout << "1/ mass B = " << b.inverse_mass << endl;
+
 				// 2. Calculate relative velocity
 				const Vec3 relativeVelocity = collisionPointVelocityA - collisionPointVelocityB;
+
+				cout << "relativeVelocity = " << collisionPointVelocityB << endl;
 				// 3. Fill in impulse formula
 				const Vec3 normalOfTheCollision = ci.normalWorld;
-				const double c = 0.5f;
+				const double c = 0.5f; // TODO consider to convert it to a parameter
 				const double numerator = -1*(1 + c) * dot(relativeVelocity, normalOfTheCollision);
 				const auto inverseInertiaA = a.inverse_inertia;
 				const auto inverseInertiaB = b.inverse_inertia;
@@ -157,11 +176,24 @@ void RigidBodySystemSimulator::resolveCollisions() {
 				const auto denominatorPartB = cross(inverseInertiaB * cross(collisionPosB, normalOfTheCollision), collisionPosB);
 				const double denominator = a.inverse_mass + b.inverse_mass + dot(denominatorPartA + denominatorPartB, normalOfTheCollision);
 				const double impulse = numerator / denominator;
+				cout << "c = " << c << endl;
+				cout << "normalOfTheCollision = " << collisionPointVelocityB << endl;
+				cout << "numerator = " << numerator << endl;
+				cout << "denominator = " << denominator << endl;
+				cout << "plain denominator = " << a.inverse_mass + b.inverse_mass << endl;
+				cout << "impulse = " << impulse << endl;
 				// 4. Apply impulse
 				const Vec3 newVelocityA = centerOfMassVelA + impulse * normalOfTheCollision * a.inverse_mass;
 				const Vec3 newVelocityB = centerOfMassVelB - impulse * normalOfTheCollision * b.inverse_mass;
 				const Vec3 newAngularMomentumA = a.ang_mom + cross(collisionPosA, impulse * normalOfTheCollision);
 				const Vec3 newAngularMomentumB = b.ang_mom - cross(collisionPosB, impulse * normalOfTheCollision);
+
+				cout << "newVelocityA = " << newVelocityA << endl;
+				cout << "newVelocityB = " << newVelocityB << endl;
+				cout << "newAngularMomentumA = " << newAngularMomentumA << endl;
+				cout << "newAngularMomentumB = " << newAngularMomentumB << endl;
+				cout << "======================================================================================================================" << endl;
+
 
 				a.vel = newVelocityA;
 				b.vel = newVelocityB;
