@@ -18,7 +18,7 @@
 using namespace DirectX;
 using namespace GamePhysics;
 
-//#define ADAPTIVESTEP
+#define ADAPTIVESTEP
 //#define ENABLE_WARP // Enable frame warping to achieve a set sim-step-per-real-time-second target
 
 //#define TEMPLATE_DEMO

@@ -50,7 +50,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	case 1:
 	{
 		addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
-		addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0);
+		addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
 		setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
 		setVelocityOf(1, Vec3(0.0f, -0.2f, 0.00f));
 		break;
@@ -149,26 +149,38 @@ void RigidBodySystemSimulator::resolveCollisions() {
 				// 2. Calculate relative velocity
 				const Vec3 relativeVelocity = collisionPointVelocityA - collisionPointVelocityB;
 
-				// 3. Fill in impulse formula
-				const Vec3 normalOfTheCollision = ci.normalWorld;
-				const double c = 0.5f; // TODO consider to convert it to a parameter
-				const double numerator = -1*(1 + c) * dot(relativeVelocity, normalOfTheCollision);
-				const auto inverseInertiaA = a.inverse_inertia;
-				const auto inverseInertiaB = b.inverse_inertia;
-				const auto denominatorPartA = cross(inverseInertiaA * cross(collisionPosA, normalOfTheCollision), collisionPosA);
-				const auto denominatorPartB = cross(inverseInertiaB * cross(collisionPosB, normalOfTheCollision), collisionPosB);
-				const double denominator = a.inverse_mass + b.inverse_mass + dot(denominatorPartA + denominatorPartB, normalOfTheCollision);
-				const double impulse = numerator / denominator;
-				// 4. Apply impulse
-				const Vec3 newVelocityA = centerOfMassVelA + impulse * normalOfTheCollision * a.inverse_mass;
-				const Vec3 newVelocityB = centerOfMassVelB - impulse * normalOfTheCollision * b.inverse_mass;
-				const Vec3 newAngularMomentumA = a.ang_mom + cross(collisionPosA, impulse * normalOfTheCollision);
-				const Vec3 newAngularMomentumB = b.ang_mom - cross(collisionPosB, impulse * normalOfTheCollision);
 
-				a.vel = newVelocityA;
-				b.vel = newVelocityB;
-				a.ang_mom = newAngularMomentumA;
-				b.ang_mom = newAngularMomentumB;
+				if (relativeVelocity.x < 0 || relativeVelocity.y < 0 || relativeVelocity.x < 0)
+				{
+
+				}
+				else
+				{
+					// 3. Fill in impulse formula
+					const Vec3 normalOfTheCollision = ci.normalWorld;
+					const double c = 1.0f; // TODO consider to convert it to a parameter
+					const double numerator = -1 * (1 + c) * dot(relativeVelocity, normalOfTheCollision);
+					const auto inverseInertiaA = a.inverse_inertia;
+					const auto inverseInertiaB = b.inverse_inertia;
+					const auto denominatorPartA = cross(inverseInertiaA * cross(collisionPosA, normalOfTheCollision), collisionPosA);
+					const auto denominatorPartB = cross(inverseInertiaB * cross(collisionPosB, normalOfTheCollision), collisionPosB);
+					const double denominator = a.inverse_mass + b.inverse_mass + dot(denominatorPartA + denominatorPartB, normalOfTheCollision);
+					const double impulse = numerator / denominator;
+					// 4. Apply impulse
+					const Vec3 newVelocityA = centerOfMassVelA + impulse * normalOfTheCollision * a.inverse_mass;
+					const Vec3 newVelocityB = centerOfMassVelB - impulse * normalOfTheCollision * b.inverse_mass;
+					const Vec3 newAngularMomentumA = a.ang_mom + cross(collisionPosA, impulse * normalOfTheCollision);
+					const Vec3 newAngularMomentumB = b.ang_mom - cross(collisionPosB, impulse * normalOfTheCollision);
+
+					a.vel = newVelocityA;
+					b.vel = newVelocityB;
+					a.ang_mom = newAngularMomentumA;
+					b.ang_mom = newAngularMomentumB;
+				}
+				
+				
+				//cout << relativeVelocity << endl;
+				
 			}
 		}
 	}
