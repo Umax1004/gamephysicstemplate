@@ -6,7 +6,7 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 
 const char* RigidBodySystemSimulator::getTestCasesStr()
 {
-	return "Demo,Collision,TESTCASEUSEDTORUNTEST,IAT";
+	return "Demo,Collision,TESTCASEUSEDTORUNTEST,IAT,Bounce";
 }
 
 void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
@@ -70,6 +70,13 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		//setAngularVelocityOf(0, { 5, -5, 50 });
 		setAngularVelocityOf(0, { 5, 50, 5 });
 		//setOrientationOf(0, Quat{ 3.14 / 4, 3.14 / 4 });
+		break;
+	}
+	case 4:
+	{
+		addRigidBody({ 0, 0.4, 0 }, { 0.2, 0.2, 0.2 }, 100);
+		setVelocityOf(0, {0, -1, 0});
+		addRigidBody(Vec3(0.0f, -1, 0.0f), Vec3(100, 3, 100), 100.0f, false); //TO DO: Ground Plane
 		break;
 	}
 	default:
@@ -139,6 +146,8 @@ void RigidBodySystemSimulator::resolveCollisions() {
 			Mat4 MatrixB = b.getObjToWorldMat4Matrix();
 
 			CollisionInfo ci = checkCollisionSAT(MatrixA, MatrixB);
+			std::cout << "Collision: " << ci.isValid << std::endl;
+			std::cout << ci.normalWorld << std::endl;
 			if (ci.isValid)
 			{
 				// TODO Verify with manual calculation
@@ -153,7 +162,7 @@ void RigidBodySystemSimulator::resolveCollisions() {
 
 				// 2. Calculate relative velocity
 				double relativeVelocity = dot(ci.normalWorld, collisionPointVelocityA - collisionPointVelocityB);
-
+				cout << "relVel: " << relativeVelocity << endl;
 
 				if (relativeVelocity < 0)
 				{
@@ -178,11 +187,6 @@ void RigidBodySystemSimulator::resolveCollisions() {
 					a.ang_mom = newAngularMomentumA;
 					b.ang_mom = newAngularMomentumB;
 				}
-				
-				
-				//
-				cout << relativeVelocity << endl;
-				
 			}
 		}
 	}
