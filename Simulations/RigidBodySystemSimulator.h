@@ -115,6 +115,8 @@ private:
 	Vec3 m_externalForce;
 	std::vector<Body> bodies;
 
+	float m_fBounciness = 1;
+
 	// UI Attributes
 	Point2D m_mouse{};
 	Point2D m_trackmouse{};
