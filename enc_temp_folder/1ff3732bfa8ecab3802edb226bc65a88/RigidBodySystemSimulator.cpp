@@ -104,8 +104,9 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 
 void RigidBodySystemSimulator::integratePosition(float ts) {
 	for (Body& body : bodies)
-		if(body.isMovable)
+		if (body.isMovable) {
 			body.pos += ts * body.vel;
+		}
 }
 
 void RigidBodySystemSimulator::integrateVelocity(float ts) {
@@ -135,6 +136,12 @@ void RigidBodySystemSimulator::computeAngularVelocity() {
 	for (Body& body : bodies) {
 		auto inverse_inertia = body.getRotatedInverseIntertia();
 		body.ang_vel = inverse_inertia * body.ang_mom;
+		if (isfinite(body.ang_vel.x) && isfinite(body.ang_vel.y) && isfinite(body.ang_vel.z))
+		{
+		}
+		else {
+			cout << "";
+		}
 	}
 }
 
