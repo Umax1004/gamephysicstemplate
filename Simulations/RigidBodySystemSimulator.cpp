@@ -56,7 +56,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	{
 		addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
 		addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 500.0f);
-		addRigidBody(Vec3(0.0f, -1, 0.0f), Vec3(100, 0.01f, 100), INFINITY); //TO DO: Ground Plane
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(100, 1, 100), INFINITY); //TO DO: Ground Plane
 		setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
 		setVelocityOf(1, Vec3(0.0f, -1, 0.00f));
 		break;
@@ -79,6 +79,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		addRigidBody({ 0, 0.4, 0 }, { 0.2, 0.2, 0.2 }, 100);
 		setVelocityOf(0, {0, -1, 0});
 		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(2, 1, 2), INFINITY); //TO DO: Ground Plane
+		//setOrientationOf(0, Quat{ Vec3{1, 1, 1}, 0.001 });
 		break;
 	}
 	default:
