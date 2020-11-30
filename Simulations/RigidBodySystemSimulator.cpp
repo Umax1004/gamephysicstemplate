@@ -28,7 +28,7 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 	//cout << "Number of bodies: " << bodies.size() << endl;
 	for (int i = 0; i < bodies.size(); i++)
 	{
-		//if (bodies[i].isMovable)
+		if (bodies[i].isMovable)
 		{
 			XMMATRIX Rotation = XMMatrixRotationQuaternion(bodies[i].ang_pos.toDirectXQuat());
 			XMMATRIX Scale = XMMatrixScaling(bodies[i].size[0], bodies[i].size[1], bodies[i].size[2]);
@@ -56,9 +56,10 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	{
 		addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
 		addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 500.0f);
-		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(100, 1, 100), INFINITY); //TO DO: Ground Plane
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(20, 1, 20), INFINITY);
 		setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
 		setVelocityOf(1, Vec3(0.0f, -1, 0.00f));
+		setGravity({ 0, -1, 0 });
 		break;
 	}
 	case 2:
@@ -77,9 +78,10 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	case 4:
 	{
 		addRigidBody({ 0, 0.4, 0 }, { 0.2, 0.2, 0.2 }, 100);
-		setVelocityOf(0, {0, -1, 0});
-		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(2, 1, 2), INFINITY); //TO DO: Ground Plane
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(20, 1, 20), INFINITY);
 		//setOrientationOf(0, Quat{ Vec3{1, 1, 1}, 0.001 });
+		m_fBounciness = 0.75;
+		setGravity({ 0, -3, 0 });
 		break;
 	}
 	default:
@@ -90,6 +92,9 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 
 void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 {
+	for (Body& body : bodies)
+		if (body.isMovable)
+			body.force += m_gravity / body.inverse_mass; // Gravity acts on the center of mass, ergo no torque.
 }
 
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
@@ -163,15 +168,12 @@ void RigidBodySystemSimulator::resolveCollisions() {
 				const Vec3 centerOfMassVelB = b.vel;
 				const Vec3 collisionPoint = ci.collisionPointWorld;
 				const Vec3 collisionPosA = collisionPoint - a.pos;
-				cout << "abs: " << collisionPoint << endl;
-				cout << "rel: " << collisionPosA << endl;
 				const Vec3 collisionPosB = collisionPoint - b.pos;
 				const Vec3 collisionPointVelocityA = centerOfMassVelA + cross(a.ang_vel, collisionPosA);
 				const Vec3 collisionPointVelocityB = centerOfMassVelB + cross(b.ang_vel, collisionPosB);
 
 				// 2. Calculate relative velocity
 				double relativeVelocity = dot(ci.normalWorld, collisionPointVelocityA - collisionPointVelocityB);
-				cout << "relVel: " << relativeVelocity << endl;
 
 				if (relativeVelocity < 0)
 				{
@@ -255,4 +257,8 @@ void RigidBodySystemSimulator::setAngularVelocityOf(int i, Vec3 ang_vel) {
 	auto inertia = inverse(bodies[i].getRotatedInverseIntertia());
 	bodies[i].ang_mom = inertia * ang_vel;
 	bodies[i].ang_vel = ang_vel;
+}
+
+void RigidBodySystemSimulator::setGravity(Vec3 force) {
+	m_gravity = force;
 }

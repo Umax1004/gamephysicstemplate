@@ -100,6 +100,7 @@ public:
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
 	void setAngularVelocityOf(int i, Vec3 ang_vel);
+	void setGravity(Vec3 g);
 private:
 	void integratePosition(float ts);
 	void integrateVelocity(float ts);
@@ -113,7 +114,7 @@ private:
 	// Attributes
 	// add your RigidBodySystem data members, for e.g.,
 	// RigidBodySystem * m_pRigidBodySystem; 
-	Vec3 m_externalForce;
+	Vec3 m_gravity;
 	std::vector<Body> bodies;
 
 	float m_fBounciness = 1;
