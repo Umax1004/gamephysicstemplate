@@ -373,6 +373,13 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 //--------------------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+	/*testCheckCollision(1);
+	cout << endl;
+	testCheckCollision(2);
+	cout << endl;
+	testCheckCollision(3);
+	cout << endl;
+	return 0;*/
 #if defined(DEBUG) | defined(_DEBUG)
 	// Enable run-time memory check for debug builds.
 	// (on program exit, memory leaks are printed to Visual Studio's Output console)

@@ -20,12 +20,12 @@ public:
 	const double inverse_mass;
 	const XMFLOAT3X3 inverse_inertia;
 
-	Body(Vec3 pos, Vec3 size, double mass, bool movable = true) :
+	Body(Vec3 pos, Vec3 size, double mass) :
 		pos(pos),
 		size(size),
 		inverse_mass(1 / mass),
 		inverse_inertia(inverse(getCuboidIntertia(size) * mass)),
-		isMovable(movable)
+		isMovable(mass != INFINITY)
 	{}
 	XMFLOAT3X3 getRotatedInverseIntertia() const {
 		auto r4x4 = ang_pos.getRotMat().toDirectXMatrix();
@@ -95,7 +95,7 @@ public:
 	Vec3 getLinearVelocityOfRigidBody(int i);
 	Vec3 getAngularVelocityOfRigidBody(int i);
 	void applyForceOnBody(int i, Vec3 loc, Vec3 force);
-	void addRigidBody(Vec3 position, Vec3 size, int mass, bool movable = true); // size in {x, y, z}
+	void addRigidBody(Vec3 position, Vec3 size, int mass); // size in {x, y, z}
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
 	void setAngularVelocityOf(int i, Vec3 ang_vel);

@@ -26,7 +26,7 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 	//cout << "Number of bodies: " << bodies.size() << endl;
 	for (int i = 0; i < bodies.size(); i++)
 	{
-		if (bodies[i].isMovable)
+		//if (bodies[i].isMovable)
 		{
 			XMMATRIX Rotation = XMMatrixRotationQuaternion(bodies[i].ang_pos.toDirectXQuat());
 			XMMATRIX Scale = XMMatrixScaling(bodies[i].size[0], bodies[i].size[1], bodies[i].size[2]);
@@ -54,7 +54,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	{
 		addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
 		addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
-		addRigidBody(Vec3(0.0f, -1, 0.0f), Vec3(100, 0.01f, 100), 100.0f, false); //TO DO: Ground Plane
+		addRigidBody(Vec3(0.0f, -1, 0.0f), Vec3(100, 0.01f, 100), INFINITY); //TO DO: Ground Plane
 		setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
 		setVelocityOf(1, Vec3(0.0f, -0.2f, 0.00f));
 		break;
@@ -76,7 +76,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	{
 		addRigidBody({ 0, 0.4, 0 }, { 0.2, 0.2, 0.2 }, 100);
 		setVelocityOf(0, {0, -1, 0});
-		addRigidBody(Vec3(0.0f, -1, 0.0f), Vec3(100, 3, 100), 100.0f, false); //TO DO: Ground Plane
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(2, 1, 2), INFINITY); //TO DO: Ground Plane
 		break;
 	}
 	default:
@@ -113,8 +113,10 @@ void RigidBodySystemSimulator::integrateVelocity(float ts) {
 
 void RigidBodySystemSimulator::integrateOrientation(float ts) {
 	for (Body& body : bodies) {
-		body.ang_pos += ts / 2 * Quat{ body.ang_vel.x, body.ang_vel.y, body.ang_vel.z, 0 } * body.ang_pos;
-		body.ang_pos = body.ang_pos.unit();
+		if (body.isMovable) {
+			body.ang_pos += ts / 2 * Quat{ body.ang_vel.x, body.ang_vel.y, body.ang_vel.z, 0 } *body.ang_pos;
+			body.ang_pos = body.ang_pos.unit();
+		}
 	}
 }
 
@@ -147,7 +149,6 @@ void RigidBodySystemSimulator::resolveCollisions() {
 
 			CollisionInfo ci = checkCollisionSAT(MatrixA, MatrixB);
 			std::cout << "Collision: " << ci.isValid << std::endl;
-			std::cout << ci.normalWorld << std::endl;
 			if (ci.isValid)
 			{
 				// TODO Verify with manual calculation
@@ -182,8 +183,10 @@ void RigidBodySystemSimulator::resolveCollisions() {
 					const Vec3 newAngularMomentumA = a.ang_mom + cross(collisionPosA, impulse * normalOfTheCollision);
 					const Vec3 newAngularMomentumB = b.ang_mom - cross(collisionPosB, impulse * normalOfTheCollision);
 
-					a.vel = newVelocityA;
-					b.vel = newVelocityB;
+					if (a.isMovable)
+						a.vel = newVelocityA;
+					if (b.isMovable)
+						b.vel = newVelocityB;
 					a.ang_mom = newAngularMomentumA;
 					b.ang_mom = newAngularMomentumB;
 				}
@@ -231,8 +234,8 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force) {
 	bodies[i].force += force;
 	bodies[i].torque += cross(loc-bodies[i].pos, force);
 }
-void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass, bool movable) {
-	bodies.push_back(Body{position, size, (double)mass, movable});
+void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass) {
+	bodies.push_back(Body{position, size, (double)mass});
 }
 void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation) {
 	bodies[i].ang_pos = orientation;
