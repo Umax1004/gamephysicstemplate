@@ -12,6 +12,8 @@ const char* RigidBodySystemSimulator::getTestCasesStr()
 void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 {
 	this->DUC = DUC;
+
+	TwAddVarRW(DUC->g_pTweakBar, "Bounciness", TW_TYPE_FLOAT, &m_fBounciness, " min=0 max=1 group='Simulation Params' label='Co-efficient of restitution'");
 }
 
 void RigidBodySystemSimulator::reset()
@@ -159,8 +161,7 @@ void RigidBodySystemSimulator::resolveCollisions() {
 				{
 					// 3. Fill in impulse formula
 					const Vec3 normalOfTheCollision = ci.normalWorld;
-					const double c = 0.75; // TODO consider to convert it to a parameter
-					const double numerator = -1 * (1 + c) * relativeVelocity;
+					const double numerator = -1 * (1 + m_fBounciness) * relativeVelocity;
 					const auto inverseInertiaA = a.inverse_inertia;
 					const auto inverseInertiaB = b.inverse_inertia;
 					const auto denominatorPartA = cross(inverseInertiaA * cross(collisionPosA, normalOfTheCollision), collisionPosA);
