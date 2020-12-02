@@ -40,8 +40,6 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 	}
 	DUC->endLine();
 
-
-
 	//cout << "Number of bodies: " << bodies.size() << endl;
 	for (int i = 0; i < bodies.size(); i++)
 	{
