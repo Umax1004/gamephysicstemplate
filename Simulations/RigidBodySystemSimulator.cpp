@@ -38,6 +38,19 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 			//cout << "Position of " << i << " " << bodies[i].pos << endl;
 		}
 	}
+	
+	PrimitiveBatch<VertexPositionColor> g_pPrimitiveBatchPositionColor{ pd3dImmediateContext };
+	g_pPrimitiveBatchPositionColor.Begin();
+
+	for (const CollisionInfo& col : collisions)
+	{
+		VertexPositionColor v1(col.collisionPointWorld.toDirectXVector(), Colors::Blue);
+		VertexPositionColor v2((col.collisionPointWorld + 2*col.normalWorld).toDirectXVector(), Colors::Blue);
+
+		g_pPrimitiveBatchPositionColor.DrawLine(v1, v2);
+
+	}
+	g_pPrimitiveBatchPositionColor.End();
 }
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
@@ -145,6 +158,7 @@ void RigidBodySystemSimulator::computeAngularVelocity() {
 }
 
 void RigidBodySystemSimulator::resolveCollisions() {
+	collisions.clear();
 	if (bodies.size() < 2)
 	{
 		return;
@@ -162,6 +176,7 @@ void RigidBodySystemSimulator::resolveCollisions() {
 			CollisionInfo ci = checkCollisionSAT(MatrixA, MatrixB);
 			if (ci.isValid)
 			{
+				collisions.push_back(ci);
 				// TODO Verify with manual calculation
 				// 1. Calculate velocities at collision point
 				const Vec3 centerOfMassVelA = a.vel;
