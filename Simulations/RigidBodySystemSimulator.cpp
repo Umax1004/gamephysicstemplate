@@ -27,16 +27,10 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 {
 	DUC->beginLine();
 
-	for (auto it = collisions.begin(); it != collisions.end();)
+	for (const auto& p : collisions)
 	{
-		it->second++;
-		if (it->second >= 5) {
-			it = collisions.erase(it);
-			continue;
-		}
-		const auto& col = it->first;
-		DUC->drawLine(col.collisionPointWorld.toDirectXVector(), Colors::Blue, (col.collisionPointWorld + 0.5 * col.normalWorld).toDirectXVector(), Colors::Blue);
-		it++;
+		const auto& col = p.first;
+		DUC->drawLine(col.collisionPointWorld.toDirectXVector(), Colors::Red, (col.collisionPointWorld + 0.5 * col.normalWorld).toDirectXVector(), Colors::Blue);
 	}
 	DUC->endLine();
 
@@ -160,6 +154,15 @@ void RigidBodySystemSimulator::computeAngularVelocity() {
 }
 
 void RigidBodySystemSimulator::resolveCollisions() {
+	for (auto it = collisions.begin(); it != collisions.end();)
+	{
+		it->second++;
+		if (it->second >= 2) {
+			it = collisions.erase(it);
+			continue;
+		}
+		it++;
+	}
 	if (bodies.size() < 2)
 	{
 		return;
