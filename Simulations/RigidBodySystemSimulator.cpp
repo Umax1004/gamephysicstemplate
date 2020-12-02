@@ -233,7 +233,7 @@ void RigidBodySystemSimulator::resolveCollisions() {
 				const Vec3 centerOfMassVelA = a.vel;
 				const Vec3 centerOfMassVelB = b.vel;
 				Vec3 collisionPoint;
-				//Find the deepest corner
+				//Find the deepest corner that has a colliding contact (relative velocity < 0)
 				collisionPoint = {INFINITY, INFINITY, INFINITY};
 				double collisionPointDistance = INFINITY;
 				Vec3 otherCenter = ci.into ? b.pos : a.pos;
@@ -275,10 +275,30 @@ void RigidBodySystemSimulator::resolveCollisions() {
 						a.vel = newVelocityA;
 					if (b.isMovable)
 						b.vel = newVelocityB;
+
 					a.ang_mom = newAngularMomentumA;
 					b.ang_mom = newAngularMomentumB;
 					impulses.push_back({0, collisionPoint, normalOfTheCollision});
 				}
+
+				Vec3 deepestCorner;
+				//Find the deepest corner (no matter the type of contact)
+				deepestCorner = { INFINITY, INFINITY, INFINITY };
+				double deepestCornerDistance = INFINITY;
+				for (int i = 0; i < ci.collisionPoints.first; i++) {
+					Vec3 thisPoint = ci.collisionPoints.second[i];
+					double distToCenter = (thisPoint - otherCenter).norm();
+					if (distToCenter < deepestCornerDistance) {
+						deepestCorner = thisPoint;
+						deepestCornerDistance = distToCenter;
+					}
+				}
+
+				if (a.isMovable)
+					a.pos += ci.depth * ci.normalWorld * a.inverse_mass / (a.inverse_mass + b.inverse_mass);
+				if (b.isMovable)
+					b.pos += ci.depth * ci.normalWorld * b.inverse_mass / (a.inverse_mass + b.inverse_mass);
+
 			}
 		}
 	}
