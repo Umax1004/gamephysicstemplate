@@ -25,6 +25,18 @@ void RigidBodySystemSimulator::reset()
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
+	PrimitiveBatch<VertexPositionColor> g_pPrimitiveBatchPositionColor{ pd3dImmediateContext };
+	g_pPrimitiveBatchPositionColor.Begin();
+
+	for (const CollisionInfo& col : collisions)
+	{
+		VertexPositionColor v1(col.collisionPointWorld.toDirectXVector(), Colors::Blue);
+		VertexPositionColor v2((col.collisionPointWorld + 2*col.normalWorld).toDirectXVector(), Colors::Blue);
+
+		g_pPrimitiveBatchPositionColor.DrawLine(v1, v2);
+
+	}
+	g_pPrimitiveBatchPositionColor.End();
 	//cout << "Number of bodies: " << bodies.size() << endl;
 	for (int i = 0; i < bodies.size(); i++)
 	{
@@ -39,18 +51,6 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 		}
 	}
 	
-	PrimitiveBatch<VertexPositionColor> g_pPrimitiveBatchPositionColor{ pd3dImmediateContext };
-	g_pPrimitiveBatchPositionColor.Begin();
-
-	for (const CollisionInfo& col : collisions)
-	{
-		VertexPositionColor v1(col.collisionPointWorld.toDirectXVector(), Colors::Blue);
-		VertexPositionColor v2((col.collisionPointWorld + 2*col.normalWorld).toDirectXVector(), Colors::Blue);
-
-		g_pPrimitiveBatchPositionColor.DrawLine(v1, v2);
-
-	}
-	g_pPrimitiveBatchPositionColor.End();
 }
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
