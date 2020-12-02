@@ -109,6 +109,8 @@ private:
 	void computeAngularVelocity();
 	void resolveCollisions();
 	void clearStateForNextIteration();
+	static void TW_CALL GetGravityCallback(void* value, void* clientData);
+	static void TW_CALL SetGravityCallback(const void* value, void* clientData);
 
 private:
 	// Attributes
