@@ -44,21 +44,21 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 {
 	DUC->beginLine();
 
-	for (const auto& t : impulses)
+	/*for (const auto& t : impulses)
 	{
 		Vec3 position = std::get<1>(t);
 		Vec3 direction = std::get<2>(t);
 		DUC->drawLine(position.toDirectXVector(), Colors::Red, (position + 0.5 * direction).toDirectXVector(), Colors::Blue);
-	}
+	}*/
 
-	/*for (const auto& p : collisions)
+	for (const auto& p : collisions)
 	{
 		const auto& col = p.first;
 		for (int i = 0; i < col.collisionPoints.first; i++) {
 			Vec3 collisionPoint = col.collisionPoints.second[i];
 			DUC->drawLine(collisionPoint.toDirectXVector(), Colors::Red, (collisionPoint + 0.5 * col.normalWorld).toDirectXVector(), Colors::Blue);
 		}
-	}*/
+	}
 
 	DUC->endLine();
 

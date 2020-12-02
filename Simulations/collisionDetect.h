@@ -341,7 +341,7 @@ namespace collisionTools{
 		// so we can guarantee an intersection
 		XMVECTOR normal;
 		switch (fromWhere){
-		case 0:{
+		case 0:case 1:{
 				   normal = axis;
 				   if (XMVectorGetX(XMVector3Dot(axis, toCenter)) <= 0)
 				   {
@@ -349,15 +349,10 @@ namespace collisionTools{
 				   }
 				   info.collisionPoints = handleVertexToface(obj2World_B, obj2World_A);
 				   info.into = 0;
-		}break;
-		case 1:{
-				   normal = axis;
-				   if (XMVectorGetX(XMVector3Dot(axis, toCenter)) <= 0)
-				   {
-					   normal = normal * -1.0f;
+				   if (info.collisionPoints.first == 0) {
+					   info.collisionPoints = handleVertexToface(obj2World_A, obj2World_B);
+					   info.into = 1;
 				   }
-				   info.collisionPoints = handleVertexToface(obj2World_A, obj2World_B);
-				   info.into = 1;
 		}break;
 		case 2:{
 				   XMVECTOR axis = XMVector3Normalize(XMVector3Cross(axes1[whichEdges / 3], axes2[whichEdges % 3]));
