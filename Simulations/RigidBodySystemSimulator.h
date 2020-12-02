@@ -116,7 +116,7 @@ private:
 	// RigidBodySystem * m_pRigidBodySystem; 
 	Vec3 m_gravity;
 	std::vector<Body> bodies;
-	std::vector<CollisionInfo> collisions; // For visualization
+	std::vector<std::pair<CollisionInfo, int>> collisions; // For visualization. pair<info, age>
 
 	float m_fBounciness = 1;
 

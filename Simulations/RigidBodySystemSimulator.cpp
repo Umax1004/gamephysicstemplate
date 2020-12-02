@@ -25,6 +25,23 @@ void RigidBodySystemSimulator::reset()
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
+	DUC->beginLine();
+
+	for (auto it = collisions.begin(); it != collisions.end();)
+	{
+		it->second++;
+		if (it->second >= 5) {
+			it = collisions.erase(it);
+			continue;
+		}
+		const auto& col = it->first;
+		DUC->drawLine(col.collisionPointWorld.toDirectXVector(), Colors::Blue, (col.collisionPointWorld + 0.5 * col.normalWorld).toDirectXVector(), Colors::Blue);
+		it++;
+	}
+	DUC->endLine();
+
+
+
 	//cout << "Number of bodies: " << bodies.size() << endl;
 	for (int i = 0; i < bodies.size(); i++)
 	{
@@ -38,19 +55,6 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 			//cout << "Position of " << i << " " << bodies[i].pos << endl;
 		}
 	}
-	
-	PrimitiveBatch<VertexPositionColor> g_pPrimitiveBatchPositionColor{ pd3dImmediateContext };
-	g_pPrimitiveBatchPositionColor.Begin();
-
-	for (const CollisionInfo& col : collisions)
-	{
-		VertexPositionColor v1(col.collisionPointWorld.toDirectXVector(), Colors::Blue);
-		VertexPositionColor v2((col.collisionPointWorld + 2*col.normalWorld).toDirectXVector(), Colors::Blue);
-
-		g_pPrimitiveBatchPositionColor.DrawLine(v1, v2);
-
-	}
-	g_pPrimitiveBatchPositionColor.End();
 }
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
@@ -91,7 +95,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	case 4:
 	{
 		addRigidBody({ 0, 0.4, 0 }, { 0.2, 0.2, 0.2 }, 100);
-		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(20, 1, 20), INFINITY);
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.5, 1, 1.5), INFINITY);
 		//setOrientationOf(0, Quat{ Vec3{1, 1, 1}, 0.001 });
 		m_fBounciness = 0.75;
 		setGravity({ 0, -3, 0 });
@@ -158,7 +162,6 @@ void RigidBodySystemSimulator::computeAngularVelocity() {
 }
 
 void RigidBodySystemSimulator::resolveCollisions() {
-	collisions.clear();
 	if (bodies.size() < 2)
 	{
 		return;
@@ -176,7 +179,7 @@ void RigidBodySystemSimulator::resolveCollisions() {
 			CollisionInfo ci = checkCollisionSAT(MatrixA, MatrixB);
 			if (ci.isValid)
 			{
-				collisions.push_back(ci);
+				collisions.push_back({ ci , 0});
 				// TODO Verify with manual calculation
 				// 1. Calculate velocities at collision point
 				const Vec3 centerOfMassVelA = a.vel;
