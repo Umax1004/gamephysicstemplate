@@ -117,6 +117,7 @@ private:
 	Vec3 m_gravity;
 	std::vector<Body> bodies;
 	std::vector<std::pair<CollisionInfo, int>> collisions; // For visualization. pair<info, age>
+	std::vector<std::tuple<int, Vec3, Vec3>> impulses; // For visualization. <age, position, direction>
 
 	float m_fBounciness = 1;
 

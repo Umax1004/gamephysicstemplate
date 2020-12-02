@@ -27,11 +27,22 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 {
 	DUC->beginLine();
 
-	for (const auto& p : collisions)
+	for (const auto& t : impulses)
+	{
+		Vec3 position = std::get<1>(t);
+		Vec3 direction = std::get<2>(t);
+		DUC->drawLine(position.toDirectXVector(), Colors::Red, (position + 0.5 * direction).toDirectXVector(), Colors::Blue);
+	}
+
+	/*for (const auto& p : collisions)
 	{
 		const auto& col = p.first;
-		DUC->drawLine(col.collisionPointWorld.toDirectXVector(), Colors::Red, (col.collisionPointWorld + 0.5 * col.normalWorld).toDirectXVector(), Colors::Blue);
-	}
+		for (int i = 0; i < col.collisionPoints.first; i++) {
+			Vec3 collisionPoint = col.collisionPoints.second[i];
+			DUC->drawLine(collisionPoint.toDirectXVector(), Colors::Red, (collisionPoint + 0.5 * col.normalWorld).toDirectXVector(), Colors::Blue);
+		}
+	}*/
+
 	DUC->endLine();
 
 	//cout << "Number of bodies: " << bodies.size() << endl;
@@ -68,7 +79,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(20, 1, 20), INFINITY);
 		setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
 		setVelocityOf(1, Vec3(0.0f, -1, 0.00f));
-		setGravity({ 0, -1, 0 });
+		setGravity({ 0, -15, 0 });
 		break;
 	}
 	case 2:
@@ -153,12 +164,32 @@ void RigidBodySystemSimulator::computeAngularVelocity() {
 	}
 }
 
+static double calculateRelativeVelocity(Body a, Body b, Vec3 point, Vec3 normalWorld) {
+	// 1. Calculate velocities at collision point
+	const Vec3 thisPosA = point - a.pos;
+	const Vec3 thisPosB = point - b.pos;
+	const Vec3 thisPointVelocityA = a.vel + cross(a.ang_vel, thisPosA);
+	const Vec3 thisPointVelocityB = b.vel + cross(b.ang_vel, thisPosB);
+
+	// 2. Calculate relative velocity
+	return dot(normalWorld, thisPointVelocityA - thisPointVelocityB);
+}
+
 void RigidBodySystemSimulator::resolveCollisions() {
 	for (auto it = collisions.begin(); it != collisions.end();)
 	{
 		it->second++;
 		if (it->second >= 2) {
 			it = collisions.erase(it);
+			continue;
+		}
+		it++;
+	}
+	for (auto it = impulses.begin(); it != impulses.end();)
+	{
+		std::get<0>(*it)++;
+		if (std::get<0>(*it) >= 2) {
+			it = impulses.erase(it);
 			continue;
 		}
 		it++;
@@ -178,24 +209,36 @@ void RigidBodySystemSimulator::resolveCollisions() {
 			Mat4 MatrixB = b.getObjToWorldMat4Matrix();
 
 			CollisionInfo ci = checkCollisionSAT(MatrixA, MatrixB);
-			if (ci.isValid)
+			if (ci.isValid && ci.collisionPoints.first > 0)
 			{
 				collisions.push_back({ ci , 0});
 				// TODO Verify with manual calculation
-				// 1. Calculate velocities at collision point
 				const Vec3 centerOfMassVelA = a.vel;
 				const Vec3 centerOfMassVelB = b.vel;
-				const Vec3 collisionPoint = ci.collisionPointWorld;
-				const Vec3 collisionPosA = collisionPoint - a.pos;
-				const Vec3 collisionPosB = collisionPoint - b.pos;
-				const Vec3 collisionPointVelocityA = centerOfMassVelA + cross(a.ang_vel, collisionPosA);
-				const Vec3 collisionPointVelocityB = centerOfMassVelB + cross(b.ang_vel, collisionPosB);
+				Vec3 collisionPoint;
+				//Find the deepest corner
+				collisionPoint = {INFINITY, INFINITY, INFINITY};
+				double collisionPointDistance = INFINITY;
+				Vec3 otherCenter = ci.into ? b.pos : a.pos;
+				for (int i = 0; i < ci.collisionPoints.first; i++) {
+					Vec3 thisPoint = ci.collisionPoints.second[i];
+					if (calculateRelativeVelocity(a, b, thisPoint, ci.normalWorld) < 0) {
+						double distToCenter = (thisPoint - otherCenter).norm();
+						if (distToCenter < collisionPointDistance) {
+							collisionPoint = thisPoint;
+							collisionPointDistance = distToCenter;
+						}
+					}
+				}
 
-				// 2. Calculate relative velocity
-				double relativeVelocity = dot(ci.normalWorld, collisionPointVelocityA - collisionPointVelocityB);
-
-				if (relativeVelocity < 0)
+				if (isfinite(collisionPoint.x)) // == relativeVelocity < 0
 				{
+					const Vec3 collisionPosA = collisionPoint - a.pos;
+					const Vec3 collisionPosB = collisionPoint - b.pos;
+					double relativeVelocity = calculateRelativeVelocity(a, b, collisionPoint, ci.normalWorld);
+
+					assert(relativeVelocity < 0);
+
 					// 3. Fill in impulse formula
 					const Vec3 normalOfTheCollision = ci.normalWorld;
 					const double numerator = -1 * (1 + m_fBounciness) * relativeVelocity;
@@ -217,6 +260,7 @@ void RigidBodySystemSimulator::resolveCollisions() {
 						b.vel = newVelocityB;
 					a.ang_mom = newAngularMomentumA;
 					b.ang_mom = newAngularMomentumB;
+					impulses.push_back({0, collisionPoint, normalOfTheCollision});
 				}
 			}
 		}

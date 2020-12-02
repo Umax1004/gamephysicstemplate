@@ -41,6 +41,16 @@ inline std::ostream& operator<<(std::ostream& s, const XMMATRIX& m) {
 	return s;
 }
 
+inline std::ostream& operator<<(std::ostream& s, const XMVECTOR& m) {
+	s << "[ ";
+	for (int i = 0; i < 4; i++) {
+		s << XMVectorGetByIndex(m, i) << " ";
+	}
+	s << " ]";
+	return s;
+}
+
+
 inline XMFLOAT3X3 operator*(XMFLOAT3X3 m, double s) {
 	for (int i = 0; i < 9; i++)
 		m.m[i / 3][i % 3] *= s;
