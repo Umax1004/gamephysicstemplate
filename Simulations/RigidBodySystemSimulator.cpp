@@ -171,7 +171,12 @@ void RigidBodySystemSimulator::integrateOrientation(float ts) {
 void RigidBodySystemSimulator::integrateAngularMomentum(float ts) {
 	for (Body& body : bodies)
 		if (body.isMovable)
+		{
 			body.ang_mom += ts * body.torque;
+			body.ang_mom *= 0.9;
+		}
+		else
+			body.ang_mom = Vec3();
 }
 
 void RigidBodySystemSimulator::computeAngularVelocity() {
@@ -255,6 +260,8 @@ void RigidBodySystemSimulator::resolveCollisions() {
 					double relativeVelocity = calculateRelativeVelocity(a, b, collisionPoint, ci.normalWorld);
 
 					assert(relativeVelocity < 0);
+					
+					cout << relativeVelocity << endl;
 
 					// 3. Fill in impulse formula
 					const Vec3 normalOfTheCollision = ci.normalWorld;
