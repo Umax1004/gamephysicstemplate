@@ -23,7 +23,7 @@ public:
 	Body(Vec3 pos, Vec3 size, double mass) :
 		pos(pos),
 		size(size),
-		inverse_mass(1 / mass),
+		inverse_mass(mass == INFINITY ? 0 : 1 / mass),
 		inverse_inertia(inverse(getCuboidIntertia(size))*(1/mass)),
 		isMovable(mass != INFINITY)
 	{
@@ -118,7 +118,7 @@ private:
 	std::vector<Body> bodies;
 	std::vector<std::pair<CollisionInfo, int>> collisions; // For visualization. pair<info, age>
 
-	float m_fBounciness = 1;
+	float m_fBounciness = 0.01;
 
 	// UI Attributes
 	Point2D m_mouse{};
