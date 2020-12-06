@@ -122,6 +122,7 @@ private:
 	std::vector<std::tuple<int, Vec3, Vec3>> impulses; // For visualization. <age, position, direction>
 
 	float m_fBounciness = 1;
+	float m_fRotationalFriction = 1;
 
 	// UI Attributes
 	Point2D m_mouse{};

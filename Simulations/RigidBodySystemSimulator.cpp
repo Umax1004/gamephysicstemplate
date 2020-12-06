@@ -30,6 +30,7 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 	this->DUC = DUC;
 
 	TwAddVarRW(DUC->g_pTweakBar, "Bounciness", TW_TYPE_FLOAT, &m_fBounciness, " min=0 max=1 group='Simulation Params' label='Co-efficient of restitution'");
+	TwAddVarRW(DUC->g_pTweakBar, "Rotational Friction", TW_TYPE_FLOAT, &m_fRotationalFriction, " min=0 max=1 group='Simulation Params' label='Co-efficient of angular friction'");
 	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3F, SetGravityCallback, GetGravityCallback, &m_gravity, "group='Simulation Params' label='Gravity'");
 }
 
@@ -79,6 +80,7 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 {
+	m_fRotationalFriction = 1;
 	bodies.clear();
 	switch (testCase)
 	{
@@ -97,6 +99,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
 		setVelocityOf(1, Vec3(0.0f, -1, 0.00f));
 		setGravity({ 0, -15, 0 });
+		m_fRotationalFriction = 0.98;
 		break;
 	}
 	case 2:
@@ -119,6 +122,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		//setOrientationOf(0, Quat{ Vec3{1, 1, 1}, 0.001 });
 		m_fBounciness = 0.75;
 		setGravity({ 0, -3, 0 });
+		m_fRotationalFriction = 0.98;
 		break;
 	}
 	default:
@@ -173,7 +177,7 @@ void RigidBodySystemSimulator::integrateAngularMomentum(float ts) {
 		if (body.isMovable)
 		{
 			body.ang_mom += ts * body.torque;
-			body.ang_mom *= 0.9;
+			body.ang_mom *= m_fRotationalFriction;
 		}
 		else
 			body.ang_mom = Vec3();
