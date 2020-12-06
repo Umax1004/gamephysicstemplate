@@ -86,6 +86,7 @@ public:
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
+	void interactiveForcesCalculations();
 	void simulateTimestep(float timeStep);
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
@@ -115,9 +116,11 @@ private:
 	// add your RigidBodySystem data members, for e.g.,
 	// RigidBodySystem * m_pRigidBodySystem; 
 	Vec3 m_gravity;
+	Vec3 m_interactiveForce;
 	std::vector<Body> bodies;
 	std::vector<std::pair<CollisionInfo, int>> collisions; // For visualization. pair<info, age>
 
+	bool m_clicked = false;
 	float m_fBounciness = 0.01;
 
 	// UI Attributes

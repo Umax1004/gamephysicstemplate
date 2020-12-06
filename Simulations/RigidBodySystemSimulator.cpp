@@ -63,12 +63,12 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	}
 	case 1:
 	{
-		addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
-		addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 500.0f);
-		addRigidBody(Vec3(0.0f, -1, 0.0f), Vec3(2000, 1, 2000), INFINITY);
+		addRigidBody(Vec3(0.0f, -0.8f, 0.0f), Vec3(0.3f, 0.3f, 0.2f), 300.0f);
+		addRigidBody(Vec3(0.0f, 0.8f, 0.0f), Vec3(0.5f, 0.5f, 0.2f), 500.0f);
+		// addRigidBody(Vec3(0.0f, -1, 0.0f), Vec3(2000, 1, 2000), INFINITY);
 		setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
 		setVelocityOf(1, Vec3(0.0f, -1, 0.00f));
-		setGravity({ 0, -1, 0 });
+		setGravity({ 0, 0, 0 });
 		break;
 	}
 	case 2:
@@ -99,15 +99,34 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	
 }
 
+void RigidBodySystemSimulator::interactiveForcesCalculations()
+{
+	if (!m_clicked)
+	{
+		return;
+	}
+	m_clicked = false;
+	const float forceScale = 5000;
+
+	for (Body& body : bodies) {
+		if (body.isMovable) {
+			const Vec3 interactiveForce = { 0 - body.pos.x , 0 - body.pos.y, 0 - body.pos.z };
+			const double length = std::sqrt(body.pos.x * body.pos.x + body.pos.y * body.pos.y + body.pos.z * body.pos.z);
+			body.force += forceScale * length * interactiveForce;
+		}
+	}
+}
+
 void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 {
 	for (Body& body : bodies)
 		if (body.isMovable)
-			body.force = m_gravity / body.inverse_mass; // Gravity acts on the center of mass, ergo no torque.
+			body.force += m_gravity / body.inverse_mass; // Gravity acts on the center of mass, ergo no torque.
 }
 
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
+	interactiveForcesCalculations();
 	externalForcesCalculations(timeStep);
 	integratePosition(timeStep);
 	integrateVelocity(timeStep);
@@ -242,6 +261,7 @@ void RigidBodySystemSimulator::onClick(int x, int y)
 {
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
+	m_clicked = true;
 }
 
 void RigidBodySystemSimulator::onMouse(int x, int y)
