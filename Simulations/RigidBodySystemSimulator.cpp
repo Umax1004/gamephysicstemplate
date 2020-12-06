@@ -101,7 +101,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 
 void RigidBodySystemSimulator::interactiveForcesCalculations()
 {
-	if (!m_clicked)
+	if (!m_clicked || bodies.size() < 2)
 	{
 		return;
 	}
