@@ -6,7 +6,7 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 
 const char* RigidBodySystemSimulator::getTestCasesStr()
 {
-	return "DEMO1,Collision,TESTCASEUSEDTORUNTEST,IAT,Bounce";
+	return "DEMO1,Collision,TESTCASEUSEDTORUNTEST,IAT,Bounce, DEMO4";
 }
 
 void TW_CALL RigidBodySystemSimulator::GetGravityCallback(void* value, void* clientData)
@@ -123,6 +123,18 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		//setOrientationOf(0, Quat{ Vec3{1, 1, 1}, 0.001 });
 		m_fBounciness = 0.75;
 		setGravity({ 0, -3, 0 });
+		m_fRotationalFriction = 0.98;
+		break;
+	}
+	case 5:
+	{
+		addRigidBody({ 0, 0, 0 }, { 0.2, 0.2, 0.2 }, 2);
+		addRigidBody({ 0.15, 0.3, 0 }, { 0.2, 0.2, 0.2 }, 2);
+		addRigidBody({ 0.25, 0.6, 0 }, { 0.2, 0.2, 0.2 }, 2);
+		addRigidBody({ 0.35, 1, 0 }, { 0.2, 0.2, 0.2 }, 2);
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(10, 1, 10), INFINITY);
+		m_fBounciness = 1;
+		setGravity({ 0, -9.8, 0 });
 		m_fRotationalFriction = 0.98;
 		break;
 	}
