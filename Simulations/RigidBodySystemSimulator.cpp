@@ -341,7 +341,7 @@ void RigidBodySystemSimulator::resolveCollisions() {
 				if (a.isMovable)
 					a.pos += ci.depth * ci.normalWorld * a.inverse_mass / (a.inverse_mass + b.inverse_mass);
 				if (b.isMovable)
-					b.pos += ci.depth * ci.normalWorld * b.inverse_mass / (a.inverse_mass + b.inverse_mass);
+					b.pos -= ci.depth * ci.normalWorld * b.inverse_mass / (a.inverse_mass + b.inverse_mass);
 
 			}
 		}
