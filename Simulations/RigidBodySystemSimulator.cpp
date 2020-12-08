@@ -88,19 +88,24 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	{
 		addRigidBody({ 0, 0, 0 }, { 1, 0.6, 0.5 }, 2);
 		applyForceOnBody(0, { 0.3, 0.5, 0.25 }, { 1,1,0 });
-		setVelocityOf(0, { -0.3, -0.5, -0.25 });
+		//setVelocityOf(0, { -0.3, -0.5, -0.25 });
 		setOrientationOf(0, Quat(Vec3(0.0f, 0.0f, 1.0f), (float)(M_PI) * 0.5f));
 		break;
 	}
 	case 1:
 	{
-		addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
-		addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 500.0f);
-		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(20, 1, 20), INFINITY);
-		setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
-		setVelocityOf(1, Vec3(0.0f, -1, 0.00f));
-		setGravity({ 0, -15, 0 });
-		m_fRotationalFriction = 0.98;
+		//addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
+		//addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 500.0f);
+		//addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(20, 1, 20), INFINITY);
+		//setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
+		//setVelocityOf(1, Vec3(0.0f, -1, 0.00f));
+		//setGravity({ 0, -15, 0 });
+		addRigidBody(Vec3(-0.1f, -0.2f, 0.1f), Vec3(0.4f, 0.2f, 0.2f), 100.0f);
+
+		addRigidBody(Vec3(0.0f, 0.2f, 0.0f), Vec3(0.4f, 0.2f, 0.2f), 100.0);
+		setOrientationOf(1, Quat(Vec3(0.0f, 0.0f, 1.0f), (float)(M_PI) * 0.25f));
+		setVelocityOf(1, Vec3(0.0f, -0.1f, 0.05f));
+		//m_fRotationalFriction = 0.98;
 		break;
 	}
 	case 2:
