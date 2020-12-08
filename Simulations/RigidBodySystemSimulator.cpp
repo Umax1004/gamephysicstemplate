@@ -6,7 +6,7 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 
 const char* RigidBodySystemSimulator::getTestCasesStr()
 {
-	return "DEMO1,Collision,TESTCASEUSEDTORUNTEST,IAT,Bounce, DEMO4";
+	return "DEMO1,DEMO3,TESTCASEUSEDTORUNTEST,IAT,Bounce, DEMO4";
 }
 
 void TW_CALL RigidBodySystemSimulator::GetGravityCallback(void* value, void* clientData)
@@ -31,6 +31,7 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 
 	TwAddVarRW(DUC->g_pTweakBar, "Bounciness", TW_TYPE_FLOAT, &m_fBounciness, " min=0 max=1 group='Simulation Params' label='Co-efficient of restitution'");
 	TwAddVarRW(DUC->g_pTweakBar, "Rotational Friction", TW_TYPE_FLOAT, &m_fRotationalFriction, " min=0 max=1 group='Simulation Params' label='Co-efficient of angular friction'");
+	TwAddVarRW(DUC->g_pTweakBar, "Force to Attraction Toggle", TW_TYPE_BOOLCPP, &m_ForceAttract, "group='Simulation Params' label='Toggle Force to Attraction'");
 	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3F, SetGravityCallback, GetGravityCallback, &m_gravity, "group='Simulation Params' label='Gravity'");
 }
 
@@ -88,24 +89,15 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	{
 		addRigidBody({ 0, 0, 0 }, { 1, 0.6, 0.5 }, 2);
 		applyForceOnBody(0, { 0.3, 0.5, 0.25 }, { 1,1,0 });
-		//setVelocityOf(0, { -0.3, -0.5, -0.25 });
 		setOrientationOf(0, Quat(Vec3(0.0f, 0.0f, 1.0f), (float)(M_PI) * 0.5f));
 		break;
 	}
 	case 1:
 	{
-		//addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 100.0f);
-		//addRigidBody(Vec3(0.0f, 0.4f, 0.0f), Vec3(0.2f, 0.2f, 0.2f), 500.0f);
-		//addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(20, 1, 20), INFINITY);
-		//setOrientationOf(1, Quat(Vec3(0.0f, 1.0f, 1.0f), (float)(M_PI) * 0.25f));
-		//setVelocityOf(1, Vec3(0.0f, -1, 0.00f));
-		//setGravity({ 0, -15, 0 });
 		addRigidBody(Vec3(-0.1f, -0.2f, 0.1f), Vec3(0.4f, 0.2f, 0.2f), 100.0f);
-
 		addRigidBody(Vec3(0.0f, 0.2f, 0.0f), Vec3(0.4f, 0.2f, 0.2f), 100.0);
 		setOrientationOf(1, Quat(Vec3(0.0f, 0.0f, 1.0f), (float)(M_PI) * 0.25f));
 		setVelocityOf(1, Vec3(0.0f, -0.1f, 0.05f));
-		//m_fRotationalFriction = 0.98;
 		break;
 	}
 	case 2:
@@ -170,15 +162,43 @@ void RigidBodySystemSimulator::interactiveForcesCalculations()
 
 void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 {
+	if (m_ForceAttract)
+	{
+		Point2D mouseDiff;
+		mouseDiff.x = m_trackmouse.x - m_oldtrackmouse.x;
+		mouseDiff.y = m_trackmouse.y - m_oldtrackmouse.y;
+		if (mouseDiff.x != 0 || mouseDiff.y != 0)
+		{
+			Mat4 worldViewInv = Mat4(DUC->g_camera.GetWorldMatrix() * DUC->g_camera.GetViewMatrix());
+			worldViewInv = worldViewInv.inverse();
+			Vec3 inputView = Vec3((float)mouseDiff.x, (float)-mouseDiff.y, 0);
+			Vec3 inputWorld = worldViewInv.transformVectorNormal(inputView);
+			// TODO find a proper scale! Rather Turn it into a parameter
+			float inputScale = 0.01;
+			inputWorld = inputWorld * inputScale;
+			m_mouseForce = inputWorld;
+		}
+		else {
+			m_mouseForce = Vec3{};
+		}
+	}
+	else
+	{
+		m_mouseForce = Vec3();
+	}
+	
+
 	for (Body& body : bodies)
 		if (body.isMovable)
-			body.force += m_gravity / body.inverse_mass; // Gravity acts on the center of mass, ergo no torque.
+			body.force += (m_gravity+m_mouseForce) / body.inverse_mass; // Gravity acts on the center of mass, ergo no torque.
 }
 
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
-	interactiveForcesCalculations();
-	externalForcesCalculations(timeStep);
+	if (!m_ForceAttract)
+	{
+		interactiveForcesCalculations();
+	}
 	integratePosition(timeStep);
 	integrateVelocity(timeStep);
 	integrateOrientation(timeStep);
