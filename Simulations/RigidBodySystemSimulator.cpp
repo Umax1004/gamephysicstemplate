@@ -115,6 +115,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	}
 	case 3:
 	{
+		setGravity({});
 		addRigidBody({ 0, 0, 0 }, { 0.5, 0.2, 0.01 }, 10);
 		//setAngularVelocityOf(0, { 5, -5, 50 });
 		setAngularVelocityOf(0, { 5, 50, 5 });
@@ -149,6 +150,24 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	
 }
 
+void RigidBodySystemSimulator::interactiveForcesCalculations()
+{
+	if (!m_clicked)
+	{
+		return;
+	}
+	m_clicked = false;
+	const float forceScale = 50;
+
+	for (Body& body : bodies) {
+		if (body.isMovable) {
+			const Vec3 interactiveForce = { 0 - body.pos.x , 0 - body.pos.y, 0 - body.pos.z };
+			const double length = std::sqrt(body.pos.x * body.pos.x + body.pos.y * body.pos.y + body.pos.z * body.pos.z);
+			body.force += forceScale * length * interactiveForce / body.inverse_mass;
+		}
+	}
+}
+
 void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 {
 	for (Body& body : bodies)
@@ -158,6 +177,8 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
+	interactiveForcesCalculations();
+	externalForcesCalculations(timeStep);
 	integratePosition(timeStep);
 	integrateVelocity(timeStep);
 	integrateOrientation(timeStep);
@@ -184,7 +205,8 @@ void RigidBodySystemSimulator::integrateVelocity(float ts) {
 void RigidBodySystemSimulator::integrateOrientation(float ts) {
 	for (Body& body : bodies) {
 		if (body.isMovable) {
-			body.ang_pos += ts / 2 * Quat{ body.ang_vel.x, body.ang_vel.y, body.ang_vel.z, 0 } *body.ang_pos;
+			auto ang_velocity = Quat{ body.ang_vel.x, body.ang_vel.y, body.ang_vel.z, 0 };
+			body.ang_pos += ts / 2 * ang_velocity * body.ang_pos;
 			body.ang_pos = body.ang_pos.unit();
 		}
 	}
@@ -282,8 +304,6 @@ void RigidBodySystemSimulator::resolveCollisions() {
 					double relativeVelocity = calculateRelativeVelocity(a, b, collisionPoint, ci.normalWorld);
 
 					assert(relativeVelocity < 0);
-					
-					cout << relativeVelocity << endl;
 
 					// 3. Fill in impulse formula
 					const Vec3 normalOfTheCollision = ci.normalWorld;
@@ -326,7 +346,7 @@ void RigidBodySystemSimulator::resolveCollisions() {
 				if (a.isMovable)
 					a.pos += ci.depth * ci.normalWorld * a.inverse_mass / (a.inverse_mass + b.inverse_mass);
 				if (b.isMovable)
-					b.pos += ci.depth * ci.normalWorld * b.inverse_mass / (a.inverse_mass + b.inverse_mass);
+					b.pos -= ci.depth * ci.normalWorld * b.inverse_mass / (a.inverse_mass + b.inverse_mass);
 
 			}
 		}
@@ -346,6 +366,7 @@ void RigidBodySystemSimulator::onClick(int x, int y)
 {
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
+	m_clicked = true;
 }
 
 void RigidBodySystemSimulator::onMouse(int x, int y)
