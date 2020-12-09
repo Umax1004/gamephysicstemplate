@@ -31,6 +31,7 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 
 	TwAddVarRW(DUC->g_pTweakBar, "Bounciness", TW_TYPE_FLOAT, &m_fBounciness, " min=0 max=1 group='Simulation Params' label='Co-efficient of restitution'");
 	TwAddVarRW(DUC->g_pTweakBar, "Rotational Friction", TW_TYPE_FLOAT, &m_fRotationalFriction, " min=0 max=1 group='Simulation Params' label='Co-efficient of angular friction'");
+	TwAddVarRW(DUC->g_pTweakBar, "Friction", TW_TYPE_FLOAT, &m_fFriction, " min=0 max=1 group='Simulation Params' label='Co-efficient of friction'");
 	TwAddVarRW(DUC->g_pTweakBar, "Force to Attraction Toggle", TW_TYPE_BOOLCPP, &m_ForceAttract, "group='Simulation Params' label='Toggle Force to Attraction'");
 	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3F, SetGravityCallback, GetGravityCallback, &m_gravity, "group='Simulation Params' label='Gravity'");
 }
@@ -82,6 +83,8 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 {
 	m_fRotationalFriction = 1;
+	setGravity({});
+	m_fFriction = 1;
 	bodies.clear();
 	switch (testCase)
 	{
@@ -107,7 +110,6 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	}
 	case 3:
 	{
-		setGravity({});
 		addRigidBody({ 0, 0, 0 }, { 0.5, 0.2, 0.01 }, 10);
 		//setAngularVelocityOf(0, { 5, -5, 50 });
 		setAngularVelocityOf(0, { 5, 50, 5 });
@@ -134,6 +136,7 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		m_fBounciness = 1;
 		setGravity({ 0, -9.8, 0 });
 		m_fRotationalFriction = 0.98;
+		m_fFriction = 0.98;
 		break;
 	}
 	default:
@@ -199,12 +202,12 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 	{
 		interactiveForcesCalculations();
 	}
+	resolveCollisions();
 	integratePosition(timeStep);
 	integrateVelocity(timeStep);
 	integrateOrientation(timeStep);
 	integrateAngularMomentum(timeStep);
 	computeAngularVelocity();
-	resolveCollisions();
 	clearStateForNextIteration();
 }
 
@@ -341,9 +344,21 @@ void RigidBodySystemSimulator::resolveCollisions() {
 					const Vec3 newAngularMomentumB = b.ang_mom - cross(collisionPosB, impulse * normalOfTheCollision);
 
 					if (a.isMovable)
+					{
 						a.vel = newVelocityA;
+						if (dot(ci.normalWorld,Vec3(0, 1, 0)))
+						{
+							a.vel *= m_fFriction;
+						}
+					}
 					if (b.isMovable)
+					{
 						b.vel = newVelocityB;
+						if (dot(ci.normalWorld, Vec3(0, 1, 0)))
+						{
+							b.vel *= m_fFriction;
+						}
+					}
 
 					a.ang_mom = newAngularMomentumA;
 					b.ang_mom = newAngularMomentumB;
