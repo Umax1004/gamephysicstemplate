@@ -119,9 +119,14 @@ private:
 	Vec3 m_interactiveForce;
 	std::vector<Body> bodies;
 	std::vector<std::pair<CollisionInfo, int>> collisions; // For visualization. pair<info, age>
+	std::vector<std::tuple<int, Vec3, Vec3>> impulses; // For visualization. <age, position, direction>
 
 	bool m_clicked = false;
-	float m_fBounciness = 0.01;
+	float m_fBounciness = 1;
+	float m_fRotationalFriction = 1;
+	float m_fFriction = 1;
+	Vec3 m_mouseForce;
+	bool m_ForceAttract = true;
 
 	// UI Attributes
 	Point2D m_mouse{};

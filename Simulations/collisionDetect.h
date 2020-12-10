@@ -1,5 +1,6 @@
 ﻿// header file:
 #include <DirectXMath.h>
+#include <array>
 #include <Vector>
 using namespace DirectX;
 
@@ -8,9 +9,10 @@ using namespace DirectX;
 // if the normalWorld == XMVectorZero(), no collision
 struct CollisionInfo{
 	bool isValid;                          // whether there is a collision point, true for yes
-	GamePhysics::Vec3 collisionPointWorld; // the position of the collision point in world space
+	std::pair<int, std::array<GamePhysics::Vec3, 8>> collisionPoints;     // the position of the collision points in world space
 	GamePhysics::Vec3 normalWorld;         // the direction of the impulse to A, negative of the collision face of A
 	float depth;                           // the distance of the collision point to the surface, not necessary.
+	bool into;							   // 1: The first object penetrated the second. 0: Vica versa. Not meaningful for edge-to-edge collisions.
 };
 
 // tool data structures/functions called by the collision detection method, you can ignore the details here
@@ -222,30 +224,38 @@ namespace collisionTools{
 		}
 	}
 
-	inline XMVECTOR handleVertexToface(const XMMATRIX& obj2World, const XMVECTOR& toCenter)
+	inline std::pair<int, std::array<Vec3, 8>> handleVertexToface(const XMMATRIX& obj2World_A, const XMMATRIX& obj2World_B)
 	{
-		std::vector<XMVECTOR> corners = getCorners(obj2World);
+		std::pair<int, std::array<Vec3, 8>> res{};
+		std::vector<XMVECTOR> corners = getCorners(obj2World_A);
+		const XMVECTOR centerWorld_B = XMVector3Transform(XMVectorZero(), obj2World_B);
+		const XMMATRIX world2B = XMMatrixInverse(nullptr, obj2World_B);
 		float min = 1000;
 		XMVECTOR vertex;
 		for (int i = 0; i < corners.size(); i++)
 		{
-			float value = XMVectorGetX(XMVector3Dot(corners[i], toCenter));
-			if (value < min)
-			{
-				vertex = corners[i];
-				min = value;
-			}
+			XMVECTOR inB = XMVector3Transform(corners[i], world2B);
+			float x = XMVectorGetX(inB);
+			if (x <= -0.5 || x >= 0.5)
+				continue; // This corner not in B
+			float y = XMVectorGetY(inB);
+			if (y <= -0.5 || y >= 0.5)
+				continue; // This corner not in B
+			float z = XMVectorGetZ(inB);
+			if (z <= -0.5 || z >= 0.5)
+				continue; // This corner not in B
+			// This corner is in B
+			res.second[res.first++] = corners[i];
 		}
 
-		return vertex;
+		return res;
 	}
 
 
 	inline CollisionInfo checkCollisionSATHelper(const XMMATRIX& obj2World_A, const XMMATRIX& obj2World_B, XMVECTOR size_A, XMVECTOR size_B)
 	{
-		CollisionInfo info;
+		CollisionInfo info{0};
 		info.isValid = false;
-		XMVECTOR collisionPoint = XMVectorZero();
 		float smallOverlap = 10000.0f;
 		XMVECTOR axis;
 		int index;
@@ -331,21 +341,18 @@ namespace collisionTools{
 		// so we can guarantee an intersection
 		XMVECTOR normal;
 		switch (fromWhere){
-		case 0:{
+		case 0:case 1:{
 				   normal = axis;
 				   if (XMVectorGetX(XMVector3Dot(axis, toCenter)) <= 0)
 				   {
 					   normal = normal * -1.0f;
 				   }
-				   collisionPoint = handleVertexToface(obj2World_B, toCenter);
-		}break;
-		case 1:{
-				   normal = axis;
-				   if (XMVectorGetX(XMVector3Dot(axis, toCenter)) <= 0)
-				   {
-					   normal = normal * -1.0f;
+				   info.collisionPoints = handleVertexToface(obj2World_B, obj2World_A);
+				   info.into = 0;
+				   if (info.collisionPoints.first == 0) {
+					   info.collisionPoints = handleVertexToface(obj2World_A, obj2World_B);
+					   info.into = 1;
 				   }
-				   collisionPoint = handleVertexToface(obj2World_A, toCenter*-1);
 		}break;
 		case 2:{
 				   XMVECTOR axis = XMVector3Normalize(XMVector3Cross(axes1[whichEdges / 3], axes2[whichEdges % 3]));
@@ -367,19 +374,19 @@ namespace collisionTools{
 				   }
 				   ptOnOneEdge = XMVector3Transform(ptOnOneEdge, obj2World_A);
 				   ptOnTwoEdge = XMVector3Transform(ptOnTwoEdge, obj2World_B);
-				   collisionPoint = contactPoint(ptOnOneEdge,
+				   XMVECTOR collisionPoint = contactPoint(ptOnOneEdge,
 					   axes1[whichEdges / 3],
 					   (float)XMVectorGetByIndex(size_A, (whichEdges / 3)),
 					   ptOnTwoEdge,
 					   axes2[whichEdges % 3],
 					   XMVectorGetByIndex(size_B, (whichEdges % 3)),
 					   bestSingleAxis);
+				   info.collisionPoints = { 1, {collisionPoint} };
 		}break;
 		}
 
 
 		info.isValid = true;
-		info.collisionPointWorld = collisionPoint;
 		info.depth = smallOverlap;
 		info.normalWorld = normal*-1;
 		return info;
@@ -400,7 +407,7 @@ inline CollisionInfo checkCollisionSAT(GamePhysics::Mat4& obj2World_A, GamePhysi
 }
 
 // example of using the checkCollisionSAT function
-inline void testCheckCollision(int caseid){
+/*inline void testCheckCollision(int caseid){
 
 	if (caseid == 1){// simple examples, suppose that boxes A and B are cubes and have no rotation
 		GamePhysics::Mat4 AM; AM.initTranslation(1.0, 1.0, 1.0);// box A at (1.0,1.0,1.0)
@@ -475,3 +482,4 @@ inline void testCheckCollision(int caseid){
 		// collision point : 0.000405, 0.000000, 0.000000
 	}
 }
+*/
