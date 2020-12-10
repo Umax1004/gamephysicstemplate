@@ -14,13 +14,26 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass* DUC)
 	this->DUC = DUC;
 
 	TwAddVarRW(DUC->g_pTweakBar, "Bounciness", TW_TYPE_FLOAT, &m_fBounciness, " min=0 max=1 group='Simulation Params' label='Co-efficient of restitution'");
-<<<<<<< HEAD
-=======
 	TwAddVarRW(DUC->g_pTweakBar, "Rotational Friction", TW_TYPE_FLOAT, &m_fRotationalFriction, " min=0 max=1 group='Simulation Params' label='Co-efficient of angular friction'");
 	TwAddVarRW(DUC->g_pTweakBar, "Friction", TW_TYPE_FLOAT, &m_fFriction, " min=0 max=1 group='Simulation Params' label='Co-efficient of friction'");
 	TwAddVarRW(DUC->g_pTweakBar, "Force to Attraction Toggle", TW_TYPE_BOOLCPP, &m_ForceAttract, "group='Simulation Params' label='Toggle Force to Attraction'");
 	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3F, SetGravityCallback, GetGravityCallback, &m_gravity, "group='Simulation Params' label='Gravity'");
->>>>>>> multi_point_collision
+}
+
+void TW_CALL RigidBodySystemSimulator::GetGravityCallback(void* value, void* clientData)
+{
+
+	static_cast<float*> (value)[0] = static_cast<const Vec3*>(clientData)->x;
+	static_cast<float*> (value)[1] = static_cast<const Vec3*>(clientData)->y;
+	static_cast<float*> (value)[2] = static_cast<const Vec3*>(clientData)->z;
+	//cout << "Get called" << endl;
+}
+
+void TW_CALL RigidBodySystemSimulator::SetGravityCallback(const void* value, void* clientData)
+{
+	static_cast<Vec3*> (clientData)->x = static_cast<const float*> (value)[0];
+	static_cast<Vec3*> (clientData)->y = static_cast<const float*> (value)[1];
+	static_cast<Vec3*> (clientData)->z = static_cast<const float*> (value)[2];
 }
 
 void RigidBodySystemSimulator::reset()
