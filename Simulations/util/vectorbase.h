@@ -152,10 +152,12 @@ public:
   inline const Scalar& operator[](unsigned int i) const;
 
   // return absolutes of all components
-  inline vector3Dim<Scalar> getAbsolutes() const { return 
-  		vector3Dim<Scalar>(fabs(value[0]), fabs(value[1]), fabs(value[2]) );
+  inline vector3Dim<Scalar> getAbsolutes() const {
+	  return
+		  vector3Dim<Scalar>(fabs(value[0]), fabs(value[1]), fabs(value[2]));
+  }
 
-  };
+  Scalar norm() const { return sqrt(value[0] * value[0] + value[1] * value[1] + value[2] * value[2]); }
 
   // debug output vector to a string
   std::string toString();

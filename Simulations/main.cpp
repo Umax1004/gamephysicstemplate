@@ -23,7 +23,7 @@ using namespace GamePhysics;
 
 //#define TEMPLATE_DEMO
 //#define MASS_SPRING_SYSTEM
-#define RIGID_BODY_SYSTEM
+//#define RIGID_BODY_SYSTEM
 //#define SPH_SYSTEM
 #define DIFFUSION_SYSTEM
 
@@ -51,6 +51,7 @@ SPHSystemSimulator* g_pSimulator;
 #endif
 
 DrawingUtilitiesClass * g_pDUC;
+Simulator* g_pSimulator;
 float 	g_fTimestep = 0.001;
 #ifdef ADAPTIVESTEP
 float   g_fTimeFactor = 1;
