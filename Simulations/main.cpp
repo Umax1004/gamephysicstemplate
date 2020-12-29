@@ -45,13 +45,12 @@ RigidBodySystemSimulator* g_pSimulator;
 //#include "SPHSystemSimulator.h"
 SPHSystemSimulator* g_pSimulator;
 #endif
-
 #ifdef DIFFUSION_SYSTEM
 #include "DiffusionSimulator.h"
+DiffusionSimulator* g_pSimulator;
 #endif
 
 DrawingUtilitiesClass * g_pDUC;
-Simulator* g_pSimulator;
 float 	g_fTimestep = 0.001;
 #ifdef ADAPTIVESTEP
 float   g_fTimeFactor = 1;

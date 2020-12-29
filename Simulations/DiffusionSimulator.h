@@ -3,16 +3,19 @@
 
 #include "Simulator.h"
 #include "vectorbase.h"
+#include <vector>
 
 //impement your own grid class for saving grid data
 class Grid {
 public:
 	// Construtors
-	Grid();
-
-
+	Grid(int x, int y);
+	float get(int x, int y);
+	void set(int x, int y, float val);
 private:
 	// Attributes
+	std::vector<float> data;
+	int width, height;
 };
 
 
@@ -34,8 +37,8 @@ public:
 	void onMouse(int x, int y);
 	// Specific Functions
 	void drawObjects();
-	Grid* diffuseTemperatureExplicit();
-	void diffuseTemperatureImplicit();
+	void diffuseTemperatureExplicit(float ts);
+	void diffuseTemperatureImplicit(float ts);
 
 private:
 	// Attributes
@@ -45,7 +48,11 @@ private:
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
-	Grid *T; //save results of every time step
+	const float ALPHA = 0.002;
+	const int RES_X = 40;
+	const int RES_Y = RES_X;
+	Grid m_grid1, m_grid2;
+	Grid* m_currentGrid = &m_grid1;
 };
 
 #endif

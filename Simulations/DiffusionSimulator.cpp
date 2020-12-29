@@ -1,18 +1,38 @@
 #include "DiffusionSimulator.h"
 #include "pcgsolver.h"
+#include <math.h>
 using namespace std;
 
-Grid::Grid() {
+Grid::Grid(int x, int y):
+	data(x*y, 0),
+	width(x),
+	height(y)
+{
+	for (int i = 0; i < x * y; i++)
+		data[i] = 0;
+}
+
+float Grid::get(int x, int y) {
+	if (x < 0 || x >= width || y < 0 || y >= height) // Enforce the boundary conditions
+		return 0;
+	float res = data[y*width+x];
+	return res;
+}
+void Grid::set(int x, int y, float val) {
+	if (x < 0 || x >= width || y < 0 || y >= height)
+		return ;
+	data[y * width + x] = val;
 }
 
 
-DiffusionSimulator::DiffusionSimulator()
+DiffusionSimulator::DiffusionSimulator():
+	m_grid1(RES_X, RES_Y),
+	m_grid2(RES_X, RES_Y)
 {
 	m_iTestCase = 0;
 	m_vfMovableObjectPos = Vec3();
 	m_vfMovableObjectFinalPos = Vec3();
 	m_vfRotate = Vec3();
-	// to be implemented
 }
 
 const char * DiffusionSimulator::getTestCasesStr(){
@@ -37,13 +57,20 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	m_iTestCase = testCase;
 	m_vfMovableObjectPos = Vec3(0, 0, 0);
 	m_vfRotate = Vec3(0, 0, 0);
-	//
-	//to be implemented
-	//
 	switch (m_iTestCase)
 	{
 	case 0:
 		cout << "Explicit solver!\n";
+		/*m_grid1.set(0, 0, 10);
+		m_grid1.set(RES_X - 1, 0, 10);
+		m_grid1.set(0, RES_Y - 1, 10);
+		m_grid1.set(RES_X - 1, RES_Y - 1, 10);*/
+		for (int j=0; j<RES_Y; j++)
+			for (int i = 0; i < RES_X; i++) {
+				float dist = (i-RES_X/2)*(i-RES_X/2)+ (j - RES_Y / 2) * (j - RES_Y / 2);
+				m_grid1.set(i, j, 100/(1+dist));
+			}
+		m_currentGrid = &m_grid1;
 		break;
 	case 1:
 		cout << "Implicit solver!\n";
@@ -54,11 +81,22 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	}
 }
 
-Grid* DiffusionSimulator::diffuseTemperatureExplicit() {//add your own parameters
-	Grid* newT = new Grid();
-	// to be implemented
-	//make sure that the temperature in boundary cells stays zero
-	return newT;
+void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
+	Grid* otherGrid = m_currentGrid == &m_grid1 ? &m_grid2 : &m_grid1;
+	float delX2 = 1.0 / (RES_X * RES_X);
+	float delY2 = 1.0 / (RES_Y * RES_Y);
+
+	for (int y = 0; y < RES_Y; y++) {
+		for (int x = 0; x < RES_X; x++) {
+			float xpart = (m_currentGrid->get(x + 1, y) - 2 * m_currentGrid->get(x, y) + m_currentGrid->get(x - 1, y)) / delX2;
+			float ypart = (m_currentGrid->get(x, y + 1) - 2 * m_currentGrid->get(x, y) + m_currentGrid->get(x, y - 1)) / delY2;
+			float res = (xpart + ypart) * ALPHA * ts + m_currentGrid->get(x, y);
+			bool nan = ! isfinite(res);
+			otherGrid->set(x, y, res);
+		}
+	}
+	
+	m_currentGrid = otherGrid;
 }
 
 void setupB(std::vector<Real>& b) {//add your own parameters
@@ -87,7 +125,7 @@ void setupA(SparseMatrix<Real>& A, double factor) {//add your own parameters
 }
 
 
-void DiffusionSimulator::diffuseTemperatureImplicit() {//add your own parameters
+void DiffusionSimulator::diffuseTemperatureImplicit(float ts) {
 	// solve A T = b
 	// to be implemented
 	const int N = 25;//N = sizeX*sizeY*sizeZ
@@ -124,18 +162,29 @@ void DiffusionSimulator::simulateTimestep(float timeStep)
 	switch (m_iTestCase)
 	{
 	case 0:
-		T = diffuseTemperatureExplicit();
+		diffuseTemperatureExplicit(timeStep);
 		break;
 	case 1:
-		diffuseTemperatureImplicit();
+		diffuseTemperatureImplicit(timeStep);
 		break;
 	}
 }
 
+float sigmoid(float x) {
+	return 1 / (1+1/exp(x));
+}
+
 void DiffusionSimulator::drawObjects()
 {
-	// to be implemented
 	//visualization
+	const float VIS_SIZE = 2;
+	for (int y=0; y<RES_Y; y++)
+		for (int x = 0; x < RES_X; x++) {
+			Vec3 pos(float(x)/RES_X*VIS_SIZE-VIS_SIZE/2, float(y)/RES_Y*VIS_SIZE-VIS_SIZE/2, 0);
+			float sigmoid_res = sigmoid(m_currentGrid->get(x, y)-2);
+			Vec3 size(sigmoid_res*(VIS_SIZE/RES_X), sigmoid_res * (VIS_SIZE / RES_Y), m_currentGrid->get(x, y)/300);
+			DUC->drawSphere(pos, size);
+		}
 }
 
 
