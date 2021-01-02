@@ -183,7 +183,7 @@ void DiffusionSimulator::drawObjects()
 			Vec3 pos(float(x)/RES_X*VIS_SIZE-VIS_SIZE/2, float(y)/RES_Y*VIS_SIZE-VIS_SIZE/2, 0);
 			float sigmoid_res = sigmoid(m_currentGrid->get(x, y)-2);
 			Vec3 size(sigmoid_res*(VIS_SIZE/RES_X), sigmoid_res * (VIS_SIZE / RES_Y), m_currentGrid->get(x, y)/300);
-			DUC->drawSphere(pos, size);
+			drawColorfulSphere(pos, size);
 		}
 }
 
@@ -205,4 +205,20 @@ void DiffusionSimulator::onMouse(int x, int y)
 	m_oldtrackmouse.y = y;
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
+}
+
+void DiffusionSimulator::drawColorfulSphere(Vec3 pos, Vec3 scale, Vec3 color)
+{
+	drawColorfulSphere(pos.toDirectXVector(), scale.toDirectXVector(), color.toDirectXVector());
+}
+void DiffusionSimulator::drawColorfulSphere(const XMVECTOR pos, const XMVECTOR scale, const XMVECTOR color)
+{
+	// Setup position/normal effect (per object variables)
+	XMMATRIX s = XMMatrixScaling(XMVectorGetX(scale), XMVectorGetY(scale), XMVectorGetZ(scale));
+	XMMATRIX t = XMMatrixTranslation(XMVectorGetX(pos), XMVectorGetY(pos), XMVectorGetZ(pos));
+	DUC->g_pEffectPositionNormal->SetWorld(s * t * DUC->g_camera.GetWorldMatrix());
+	// Draw
+	// NOTE: The following generates one draw call per object, so performance will be bad for n>>1000 or so
+	DUC->g_pEffectPositionNormal->SetDiffuseColor(color);
+	DUC->g_pSphere->Draw(DUC->g_pEffectPositionNormal, DUC->g_pInputLayoutPositionNormal);
 }

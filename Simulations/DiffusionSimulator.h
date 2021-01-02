@@ -35,6 +35,8 @@ public:
 	void externalForcesCalculations(float timeElapsed) {};
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
+	void drawColorfulSphere(Vec3 pos, Vec3 scale, Vec3 color = Vec3(1, 1, 1));
+	void drawColorfulSphere(const XMVECTOR pos, const XMVECTOR scale, const XMVECTOR color);
 	// Specific Functions
 	void drawObjects();
 	void diffuseTemperatureExplicit(float ts);
