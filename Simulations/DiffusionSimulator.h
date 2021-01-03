@@ -3,6 +3,7 @@
 
 #include "Simulator.h"
 #include "vectorbase.h"
+#include "pcgsolver.h"
 #include <vector>
 
 //impement your own grid class for saving grid data
@@ -39,6 +40,10 @@ public:
 	void drawObjects();
 	void diffuseTemperatureExplicit(float ts);
 	void diffuseTemperatureImplicit(float ts);
+private:
+	void setupA(SparseMatrix<Real>& A, float dt) const;
+	void setupB(std::vector<Real>& b) const;
+	void fillT(const std::vector<Real>& b);
 
 private:
 	// Attributes
@@ -51,7 +56,11 @@ private:
 	const float ALPHA = 0.002;
 	const int RES_X = 40;
 	const int RES_Y = RES_X;
-	Grid m_grid1, m_grid2;
+	const int RES_Z = 1;
+	const float DEL_X = 1.0 / RES_X;
+	const float DEL_Y = 1.0 / RES_Y;
+	const float DEL_Z = 1.0 / RES_Z;
+	Grid m_grid1, m_grid2; // Double buffering for the explicit solver
 	Grid* m_currentGrid = &m_grid1;
 };
 

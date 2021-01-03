@@ -1,5 +1,4 @@
 #include "DiffusionSimulator.h"
-#include "pcgsolver.h"
 #include <math.h>
 using namespace std;
 
@@ -57,20 +56,17 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	m_iTestCase = testCase;
 	m_vfMovableObjectPos = Vec3(0, 0, 0);
 	m_vfRotate = Vec3(0, 0, 0);
+	for (int j = 0; j < RES_Y; j++) {
+		for (int i = 0; i < RES_X; i++) {
+			float dist = (i - RES_X / 2) * (i - RES_X / 2) + (j - RES_Y / 2) * (j - RES_Y / 2);
+			m_grid1.set(i, j, 100 / (1 + dist));
+		}
+	}
+	m_currentGrid = &m_grid1;
 	switch (m_iTestCase)
 	{
 	case 0:
 		cout << "Explicit solver!\n";
-		/*m_grid1.set(0, 0, 10);
-		m_grid1.set(RES_X - 1, 0, 10);
-		m_grid1.set(0, RES_Y - 1, 10);
-		m_grid1.set(RES_X - 1, RES_Y - 1, 10);*/
-		for (int j=0; j<RES_Y; j++)
-			for (int i = 0; i < RES_X; i++) {
-				float dist = (i-RES_X/2)*(i-RES_X/2)+ (j - RES_Y / 2) * (j - RES_Y / 2);
-				m_grid1.set(i, j, 100/(1+dist));
-			}
-		m_currentGrid = &m_grid1;
 		break;
 	case 1:
 		cout << "Implicit solver!\n";
@@ -83,8 +79,8 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 
 void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
 	Grid* otherGrid = m_currentGrid == &m_grid1 ? &m_grid2 : &m_grid1;
-	float delX2 = 1.0 / (RES_X * RES_X);
-	float delY2 = 1.0 / (RES_Y * RES_Y);
+	float delX2 = DEL_X * DEL_X;
+	float delY2 = DEL_Y * DEL_Y;
 
 	for (int y = 0; y < RES_Y; y++) {
 		for (int x = 0; x < RES_X; x++) {
@@ -99,41 +95,49 @@ void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
 	m_currentGrid = otherGrid;
 }
 
-void setupB(std::vector<Real>& b) {//add your own parameters
-	// to be implemented
-	//set vector B[sizeX*sizeY]
-	for (int i = 0; i < 25; i++) {
-		b.at(i) = 0;
-	}
+void DiffusionSimulator::setupB(std::vector<Real>& b) const {
+	for (int y = 0; y < RES_Y; y++)
+		for (int x = 0; x < RES_X; x++)
+			b[y * RES_Y + x] = m_currentGrid->get(x, y);
 }
 
-void fillT() {//add your own parameters
-	// to be implemented
-	//fill T with solved vector x
-	//make sure that the temperature in boundary cells stays zero
+void DiffusionSimulator::fillT(const std::vector<Real>& b) {
+	for (int y = 0; y < RES_Y; y++)
+		for (int x = 0; x < RES_X; x++)
+			m_currentGrid->set(x, y, b[y * RES_Y + x]);
 }
 
-void setupA(SparseMatrix<Real>& A, double factor) {//add your own parameters
-	// to be implemented
-	//setup Matrix A[sizeX*sizeY*sizeZ, sizeX*sizeY*sizeZ]
-	// set with:  A.set_element( index1, index2 , value );
-	// if needed, read with: A(index1, index2);
-	// avoid zero rows in A -> set the diagonal value for boundary cells to 1.0
-	for (int i = 0; i < 25; i++) {
-			A.set_element(i, i, 1); // set diagonal
+static void safe_set_element(SparseMatrix<Real>& m, int x, int y, Real value) {
+	if (x < 0 || x >= m.n || y < 0 || y >= m.n)
+		return;
+	m.set_element(y, x, value);
+}
+
+void DiffusionSimulator::setupA(SparseMatrix<Real>& A, float dt) const {
+	// if needed, read from SparseMatrix with: A(index1, index2);
+	const float F_X = ALPHA * dt / (DEL_X * DEL_X);
+	const float F_Y = ALPHA * dt / (DEL_Y * DEL_Y);
+	for (int y = 0; y < RES_Y; y++) {
+		for (int x = 0; x < RES_X; x++) {
+			const int x_y = y * (RES_Y)+x;
+			safe_set_element(A, x_y, x_y-1, -F_X);
+			safe_set_element(A, x_y, x_y-RES_Y, -F_Y);
+			safe_set_element(A, x_y, x_y, 1+2*(F_X+F_Y));
+			safe_set_element(A, x_y, x_y+1, -F_X);
+			safe_set_element(A, x_y, x_y+RES_Y, -F_Y);
+		}
 	}
 }
 
 
 void DiffusionSimulator::diffuseTemperatureImplicit(float ts) {
+	const int N = RES_X * RES_Y * RES_Z;
+	SparseMatrix<Real> A(N); // Note that this implicitly initializes all elements to zero, because of the nature of the data structure
+	std::vector<Real> b(N);
 	// solve A T = b
-	// to be implemented
-	const int N = 25;//N = sizeX*sizeY*sizeZ
-	SparseMatrix<Real> *A = new SparseMatrix<Real> (N);
-	std::vector<Real> *b = new std::vector<Real>(N);
 
-	setupA(*A, 0.1);
-	setupB(*b);
+	setupA(A, ts);
+	setupB(b);
 
 	// perform solve
 	Real pcg_target_residual = 1e-05;
@@ -144,13 +148,12 @@ void DiffusionSimulator::diffuseTemperatureImplicit(float ts) {
 	SparsePCGSolver<Real> solver;
 	solver.set_solver_parameters(pcg_target_residual, pcg_max_iterations, 0.97, 0.25);
 
-	std::vector<Real> x(N);
-	for (int j = 0; j < N; ++j) { x[j] = 0.; }
+	std::vector<Real> x(N, 0);
 
 	// preconditioners: 0 off, 1 diagonal, 2 incomplete cholesky
-	solver.solve(*A, *b, x, ret_pcg_residual, ret_pcg_iterations, 0);
+	solver.solve(A, b, x, ret_pcg_residual, ret_pcg_iterations, 0);
 	// x contains the new temperature values
-	fillT();//copy x to T
+	fillT(x);//copy x to T
 }
 
 

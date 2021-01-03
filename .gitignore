@@ -1,4 +1,7 @@
 .vs/
 *.vcxproj.user
+*.iobj
+*.ipdb
 **/Win32
 **/Debug
+**/Release
