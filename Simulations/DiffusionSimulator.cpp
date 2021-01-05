@@ -123,6 +123,20 @@ void DiffusionSimulator::fillT(const std::vector<Real>& b) {
 		} 
 }
 
+void DiffusionSimulator::SetBoundaryToZero()
+{
+	for (int i = 0; i < RES_X; i++)
+	{
+		m_currentGrid->set(i, 0, 0);
+		m_currentGrid->set(i, RES_Y - 1, 0);
+	}
+	for (int i = 1; i < RES_Y-1; i++)
+	{
+		m_currentGrid->set(0, i, 0);
+		m_currentGrid->set(RES_X -1, i, 0);
+	}
+}
+
 void TW_CALL DiffusionSimulator::GetDimensionCallback(void* value, void* clientData)
 {
 	static_cast<float*> (value)[0] = static_cast<const DiffusionSimulator*>(clientData)->RES_X;
@@ -203,6 +217,8 @@ void DiffusionSimulator::simulateTimestep(float timeStep)
 		diffuseTemperatureImplicit(timeStep);
 		break;
 	}
+
+	SetBoundaryToZero();
 }
 
 float sigmoid(float x) {

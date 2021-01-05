@@ -46,6 +46,7 @@ private:
 	void setupA(SparseMatrix<Real>& A, float dt) const;
 	void setupB(std::vector<Real>& b) const;
 	void fillT(const std::vector<Real>& b);
+	void SetBoundaryToZero();
 
 private:
 	// Attributes
