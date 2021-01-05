@@ -124,7 +124,7 @@ void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
 void DiffusionSimulator::setupB(std::vector<Real>& b) const {
 	for (int y = 0; y < RES_Y; y++)
 		for (int x = 0; x < RES_X; x++)
-			b[y * RES_Y + x] = m_currentGrid->get(x, y);
+			b[y * RES_X + x] = m_currentGrid->get(x, y);
 }
 
 void DiffusionSimulator::fillT(const std::vector<Real>& b) {
@@ -132,7 +132,7 @@ void DiffusionSimulator::fillT(const std::vector<Real>& b) {
 	for (int y = 0; y < RES_Y; y++)
 		for (int x = 0; x < RES_X; x++)
 		{
-			float res = b[y * RES_Y + x];
+			float res = b[y * RES_X + x];
 			m_currentGrid->set(x, y, 0, res); 
 			if (res > m_fMaxTemp)
 			{
