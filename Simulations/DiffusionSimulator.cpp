@@ -49,6 +49,7 @@ void DiffusionSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 	// to be implemented
+	TwAddVarCB(DUC->g_pTweakBar, "Dimension", TW_TYPE_DIR3F, SetDimensionCallback, GetDimensionCallback, this, "group='Simulation Params' label='Dimension'");
 }
 
 void DiffusionSimulator::notifyCaseChanged(int testCase)
@@ -79,9 +80,12 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 
 void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
 	Grid* otherGrid = m_currentGrid == &m_grid1 ? &m_grid2 : &m_grid1;
+	DEL_X = 1.0 / RES_X;
+	DEL_Y = 1.0 / RES_Y;
+	DEL_Z = 1.0 / RES_Z;
 	float delX2 = DEL_X * DEL_X;
 	float delY2 = DEL_Y * DEL_Y;
-
+	m_fMaxTemp = 0;
 	for (int y = 0; y < RES_Y; y++) {
 		for (int x = 0; x < RES_X; x++) {
 			float xpart = (m_currentGrid->get(x + 1, y) - 2 * m_currentGrid->get(x, y) + m_currentGrid->get(x - 1, y)) / delX2;
@@ -89,6 +93,10 @@ void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
 			float res = (xpart + ypart) * ALPHA * ts + m_currentGrid->get(x, y);
 			bool nan = ! isfinite(res);
 			otherGrid->set(x, y, res);
+			if (res > m_fMaxTemp)
+			{
+				m_fMaxTemp = res;
+			}
 		}
 	}
 	
@@ -102,9 +110,33 @@ void DiffusionSimulator::setupB(std::vector<Real>& b) const {
 }
 
 void DiffusionSimulator::fillT(const std::vector<Real>& b) {
+	m_fMaxTemp = 0;
 	for (int y = 0; y < RES_Y; y++)
 		for (int x = 0; x < RES_X; x++)
-			m_currentGrid->set(x, y, b[y * RES_Y + x]);
+		{
+			float res = b[y * RES_Y + x];
+			m_currentGrid->set(x, y, res); 
+			if (res > m_fMaxTemp)
+			{
+				m_fMaxTemp = res;
+			}
+		} 
+}
+
+void TW_CALL DiffusionSimulator::GetDimensionCallback(void* value, void* clientData)
+{
+	static_cast<float*> (value)[0] = static_cast<const DiffusionSimulator*>(clientData)->RES_X;
+	static_cast<float*> (value)[1] = static_cast<const DiffusionSimulator*>(clientData)->RES_Y;
+	static_cast<float*> (value)[2] = static_cast<const DiffusionSimulator*>(clientData)->RES_Z;
+}
+
+void TW_CALL DiffusionSimulator::SetDimensionCallback(const void* value, void* clientData)
+{
+	static_cast<DiffusionSimulator*> (clientData)->RES_X = static_cast<const float*> (value)[0];
+	static_cast<DiffusionSimulator*> (clientData)->RES_Y = static_cast<const float*> (value)[1];
+	static_cast<DiffusionSimulator*> (clientData)->RES_Z = static_cast<const float*> (value)[2];
+	static_cast<DiffusionSimulator*> (clientData)->notifyCaseChanged(static_cast<DiffusionSimulator*> (clientData)->m_iTestCase);
+	
 }
 
 static void safe_set_element(SparseMatrix<Real>& m, int x, int y, Real value) {
@@ -186,7 +218,8 @@ void DiffusionSimulator::drawObjects()
 			Vec3 pos(float(x)/RES_X*VIS_SIZE-VIS_SIZE/2, float(y)/RES_Y*VIS_SIZE-VIS_SIZE/2, 0);
 			float sigmoid_res = sigmoid(m_currentGrid->get(x, y)-2);
 			Vec3 size(sigmoid_res*(VIS_SIZE/RES_X), sigmoid_res * (VIS_SIZE / RES_Y), m_currentGrid->get(x, y)/300);
-			drawColorfulSphere(pos, size);
+			float normalizedValue = m_currentGrid->get(x, y) / m_fMaxTemp;
+			drawColorfulSphere(pos, size, {normalizedValue, normalizedValue, normalizedValue });
 		}
 }
 
@@ -223,5 +256,6 @@ void DiffusionSimulator::drawColorfulSphere(const XMVECTOR pos, const XMVECTOR s
 	// Draw
 	// NOTE: The following generates one draw call per object, so performance will be bad for n>>1000 or so
 	DUC->g_pEffectPositionNormal->SetDiffuseColor(color);
+	//DUC->g_pEffectPositionNormal->SetAlpha(0);
 	DUC->g_pSphere->Draw(DUC->g_pEffectPositionNormal, DUC->g_pInputLayoutPositionNormal);
 }
