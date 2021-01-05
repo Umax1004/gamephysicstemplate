@@ -2,31 +2,33 @@
 #include <math.h>
 using namespace std;
 
-Grid::Grid(int x, int y):
-	data(x*y, 0),
+Grid::Grid(int x, int y, int z):
+	data(x*y*z, 0),
 	width(x),
-	height(y)
+	height(y),
+	breadth(z)
 {
-	for (int i = 0; i < x * y; i++)
+	for (int i = 0; i < x * y * z; i++)
 		data[i] = 0;
 }
 
-float Grid::get(int x, int y) {
-	if (x < 0 || x >= width || y < 0 || y >= height) // Enforce the boundary conditions
+float Grid::get(int x, int y, int z) {
+	if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= breadth) // Enforce the boundary conditions
 		return 0;
-	float res = data[y*width+x];
+	float res = data[z*width*height+y*width+x];
 	return res;
 }
-void Grid::set(int x, int y, float val) {
-	if (x < 0 || x >= width || y < 0 || y >= height)
+void Grid::set(int x, int y, int z, float val) {
+	if (x < 0 || x >= width || y < 0 || y >= height || 
+		z < 0 || z >= breadth)
 		return ;
-	data[y * width + x] = val;
+	data[z * width * height + y * width + x] = val;
 }
 
 
 DiffusionSimulator::DiffusionSimulator():
-	m_grid1(RES_X, RES_Y),
-	m_grid2(RES_X, RES_Y)
+	m_grid1(RES_X, RES_Y, RES_Z),
+	m_grid2(RES_X, RES_Y, RES_Z)
 {
 	m_iTestCase = 0;
 	m_vfMovableObjectPos = Vec3();
@@ -57,12 +59,21 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	m_iTestCase = testCase;
 	m_vfMovableObjectPos = Vec3(0, 0, 0);
 	m_vfRotate = Vec3(0, 0, 0);
-	for (int j = 0; j < RES_Y; j++) {
-		for (int i = 0; i < RES_X; i++) {
-			float dist = (i - RES_X / 2) * (i - RES_X / 2) + (j - RES_Y / 2) * (j - RES_Y / 2);
-			m_grid1.set(i, j, 100 / (1 + dist));
+	m_grid1 = Grid(RES_X, RES_Y, RES_Z);
+	m_grid2 = Grid(RES_X, RES_Y, RES_Z);
+	for (int k = 0; k < RES_Z; k++){
+		for (int j = 0; j < RES_Y; j++) {
+			for (int i = 0; i < RES_X; i++) {
+				Vec3 point(i, j, k), center(RES_X / 2, RES_Y / 2, RES_Z / 2);
+				float dist = point.squaredDistanceTo(center);
+				//float dist = k * RES_X * RES_Y + j * RES_X + k;
+				//float dist = (i - RES_X / 2) * (i - RES_X / 2) + (j - RES_Y / 2) * (j - RES_Y / 2) + (k - RES_Z / 2) * (k - RES_Z / 2);
+				m_grid1.set(i, j, k, 100 / (1 + dist));
+				//cout << i << j << k << endl;
+			}
 		}
 	}
+	
 	m_currentGrid = &m_grid1;
 	switch (m_iTestCase)
 	{
@@ -85,20 +96,27 @@ void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
 	DEL_Z = 1.0 / RES_Z;
 	float delX2 = DEL_X * DEL_X;
 	float delY2 = DEL_Y * DEL_Y;
+	float delZ2 = DEL_Z * DEL_Z;
 	m_fMaxTemp = 0;
-	for (int y = 0; y < RES_Y; y++) {
-		for (int x = 0; x < RES_X; x++) {
-			float xpart = (m_currentGrid->get(x + 1, y) - 2 * m_currentGrid->get(x, y) + m_currentGrid->get(x - 1, y)) / delX2;
-			float ypart = (m_currentGrid->get(x, y + 1) - 2 * m_currentGrid->get(x, y) + m_currentGrid->get(x, y - 1)) / delY2;
-			float res = (xpart + ypart) * ALPHA * ts + m_currentGrid->get(x, y);
-			bool nan = ! isfinite(res);
-			otherGrid->set(x, y, res);
-			if (res > m_fMaxTemp)
-			{
-				m_fMaxTemp = res;
+	for (int z = 0; z < RES_Z; z++) {
+		for (int y = 0; y < RES_Y; y++) {
+			for (int x = 0; x < RES_X; x++) {
+				float xpart = (m_currentGrid->get(x + 1, y, z) - 2 * m_currentGrid->get(x, y, z) + m_currentGrid->get(x - 1, y, z)) / delX2;
+				float ypart = (m_currentGrid->get(x, y + 1, z) - 2 * m_currentGrid->get(x, y, z) + m_currentGrid->get(x, y - 1, z)) / delY2;
+				float zpart = 0;
+				if (RES_Z > 1 && z > 0 && z < RES_Z)
+					zpart = (m_currentGrid->get(x, y, z + 1) - 2 * m_currentGrid->get(x, y, z) + m_currentGrid->get(x, y, z - 1)) / delZ2;
+				float res = (xpart + ypart + zpart) * ALPHA * ts + m_currentGrid->get(x, y, z);
+				bool nan = !isfinite(res);
+				otherGrid->set(x, y, z, res);
+				if (res > m_fMaxTemp)
+				{
+					m_fMaxTemp = res;
+				}
 			}
 		}
 	}
+	
 	
 	m_currentGrid = otherGrid;
 }
@@ -115,7 +133,7 @@ void DiffusionSimulator::fillT(const std::vector<Real>& b) {
 		for (int x = 0; x < RES_X; x++)
 		{
 			float res = b[y * RES_Y + x];
-			m_currentGrid->set(x, y, res); 
+			m_currentGrid->set(x, y, 0, res); 
 			if (res > m_fMaxTemp)
 			{
 				m_fMaxTemp = res;
@@ -124,17 +142,48 @@ void DiffusionSimulator::fillT(const std::vector<Real>& b) {
 }
 
 void DiffusionSimulator::SetBoundaryToZero()
-{
-	for (int i = 0; i < RES_X; i++)
+{ 
+	// This cuts edge and not face
+	/*for (int i = 0; i < RES_X; i++)
 	{
-		m_currentGrid->set(i, 0, 0);
-		m_currentGrid->set(i, RES_Y - 1, 0);
+		m_currentGrid->set(i, 0, 0, 0);
+		m_currentGrid->set(i, RES_Y - 1, 0, 0);
+		m_currentGrid->set(i, 0, RES_Z - 1, 0);
+		m_currentGrid->set(i, RES_Y - 1, RES_Z - 1, 0);
 	}
 	for (int i = 1; i < RES_Y-1; i++)
 	{
-		m_currentGrid->set(0, i, 0);
-		m_currentGrid->set(RES_X -1, i, 0);
+		m_currentGrid->set(0, i, 0, 0);
+		m_currentGrid->set(0, i, RES_Z - 1, 0);
+		m_currentGrid->set(RES_X - 1, i, 0, 0);
+		m_currentGrid->set(RES_X - 1, i, RES_Z - 1, 0);
 	}
+	for (int i = 1; i < RES_Z - 1; i++)
+	{
+		m_currentGrid->set(0, 0, i, 0);
+		m_currentGrid->set(RES_X - 1, 0, i, 0);
+		m_currentGrid->set(0, RES_Y - 1, i, 0);
+		m_currentGrid->set(RES_X - 1, RES_Y - 1, i, 0);
+	}*/
+
+	for(int j = 0; j < RES_Y; j++)
+		for (int k = 0; k < RES_Z; k++) {
+			m_currentGrid->set(0, j, k, 0);
+			m_currentGrid->set(RES_X-1, j, k, 0);
+		}
+
+	for (int i = 0; i < RES_X; i++)
+		for (int k = 0; k < RES_Z; k++) {
+			m_currentGrid->set(i, 0, k, 0);
+			m_currentGrid->set(i, RES_Y-1, k, 0);
+		}
+
+	if (RES_Z > 1)
+		for (int i = 0; i < RES_X; i++)
+			for (int j = 0; j < RES_Y; j++) {
+				m_currentGrid->set(i, j, 0, 0);
+				m_currentGrid->set(i, j, RES_Z-1, 0);
+			}
 }
 
 void TW_CALL DiffusionSimulator::GetDimensionCallback(void* value, void* clientData)
@@ -229,14 +278,16 @@ void DiffusionSimulator::drawObjects()
 {
 	//visualization
 	const float VIS_SIZE = 2;
-	for (int y=0; y<RES_Y; y++)
-		for (int x = 0; x < RES_X; x++) {
-			Vec3 pos(float(x)/RES_X*VIS_SIZE-VIS_SIZE/2, float(y)/RES_Y*VIS_SIZE-VIS_SIZE/2, 0);
-			float sigmoid_res = sigmoid(m_currentGrid->get(x, y)-2);
-			Vec3 size(sigmoid_res*(VIS_SIZE/RES_X), sigmoid_res * (VIS_SIZE / RES_Y), m_currentGrid->get(x, y)/300);
-			float normalizedValue = m_currentGrid->get(x, y) / m_fMaxTemp;
-			drawColorfulSphere(pos, size, {normalizedValue, normalizedValue, normalizedValue });
-		}
+	for (int z=0; z<RES_Z; z++)
+		for (int y=0; y<RES_Y; y++)
+			for (int x = 0; x < RES_X; x++) {
+				Vec3 pos(float(x)/RES_X*VIS_SIZE-VIS_SIZE/2, float(y)/RES_Y*VIS_SIZE-VIS_SIZE/2, float(z) / RES_Z * VIS_SIZE - VIS_SIZE / 2);
+				float sigmoid_res = sigmoid(m_currentGrid->get(x, y)-2);
+				//Vec3 size(sigmoid_res*(VIS_SIZE/RES_X), sigmoid_res * (VIS_SIZE / RES_Y), m_currentGrid->get(x, y)/300);
+				float normalizedValue = m_currentGrid->get(x, y, z) / m_fMaxTemp;
+				Vec3 size(normalizedValue/(20), normalizedValue/ (20), normalizedValue/ (20));
+				drawColorfulSphere(pos, size, {normalizedValue, normalizedValue, normalizedValue });
+			}
 }
 
 

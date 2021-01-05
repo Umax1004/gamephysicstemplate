@@ -10,13 +10,13 @@
 class Grid {
 public:
 	// Construtors
-	Grid(int x, int y);
-	float get(int x, int y);
-	void set(int x, int y, float val);
+	Grid(int x, int y, int z = 1);
+	float get(int x, int y, int z = 0);
+	void set(int x, int y, int z, float val);
 private:
 	// Attributes
 	std::vector<float> data;
-	int width, height;
+	int width, height, breadth;
 };
 
 
