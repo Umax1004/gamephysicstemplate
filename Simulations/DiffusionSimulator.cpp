@@ -122,9 +122,10 @@ void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
 }
 
 void DiffusionSimulator::setupB(std::vector<Real>& b) const {
-	for (int y = 0; y < RES_Y; y++)
-		for (int x = 0; x < RES_X; x++)
-			b[y * RES_X + x] = m_currentGrid->get(x, y);
+	for (int z = 0; z < RES_Z; z++)
+		for (int y = 0; y < RES_Y; y++)
+			for (int x = 0; x < RES_X; x++)
+				b[z * RES_Y * RES_X + y * RES_X + x] = m_currentGrid->get(x, y, z);
 }
 
 void DiffusionSimulator::fillT(const std::vector<Real>& b) {
@@ -202,7 +203,7 @@ void TW_CALL DiffusionSimulator::SetDimensionCallback(const void* value, void* c
 	
 }
 
-static void safe_set_element(SparseMatrix<Real>& m, int x, int y, Real value) {
+static void safe_set_element(SparseMatrix<Real>& m, int x, int y, int z, Real value) {
 	if (x < 0 || x >= m.n || y < 0 || y >= m.n)
 		return;
 	m.set_element(y, x, value);
@@ -212,14 +213,17 @@ void DiffusionSimulator::setupA(SparseMatrix<Real>& A, float dt) const {
 	// if needed, read from SparseMatrix with: A(index1, index2);
 	const float F_X = ALPHA * dt / (DEL_X * DEL_X);
 	const float F_Y = ALPHA * dt / (DEL_Y * DEL_Y);
-	for (int y = 0; y < RES_Y; y++) {
-		for (int x = 0; x < RES_X; x++) {
-			const int x_y = y * (RES_Y)+x;
-			safe_set_element(A, x_y, x_y-1, -F_X);
-			safe_set_element(A, x_y, x_y-RES_Y, -F_Y);
-			safe_set_element(A, x_y, x_y, 1+2*(F_X+F_Y));
-			safe_set_element(A, x_y, x_y+1, -F_X);
-			safe_set_element(A, x_y, x_y+RES_Y, -F_Y);
+	const float F_Z = ALPHA * dt / (DEL_Z * DEL_Z);
+	for (int z = 0; z < RES_Z; z++) {
+		for (int y = 0; y < RES_Y; y++) {
+			for (int x = 0; x < RES_X; x++) {
+				const int x_y = z * RES_X * RES_Y + y * (RES_X)+x;
+				safe_set_element(A, x_y, x_y - 1, z, -F_X);
+				safe_set_element(A, x_y, x_y - RES_Y, z, -F_Y);
+				safe_set_element(A, x_y, x_y, z, 1 + 2 * (F_X + F_Y));
+				safe_set_element(A, x_y, x_y + 1, z, -F_X);
+				safe_set_element(A, x_y, x_y + RES_Y, z, -F_Y);
+			}
 		}
 	}
 }
@@ -230,6 +234,10 @@ void DiffusionSimulator::diffuseTemperatureImplicit(float ts) {
 	SparseMatrix<Real> A(N); // Note that this implicitly initializes all elements to zero, because of the nature of the data structure
 	std::vector<Real> b(N);
 	// solve A T = b
+
+	DEL_X = 1.0 / RES_X;
+	DEL_Y = 1.0 / RES_Y;
+	DEL_Z = 1.0 / RES_Z;
 
 	setupA(A, ts);
 	setupB(b);
