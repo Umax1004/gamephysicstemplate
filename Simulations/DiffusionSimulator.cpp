@@ -130,16 +130,19 @@ void DiffusionSimulator::setupB(std::vector<Real>& b) const {
 
 void DiffusionSimulator::fillT(const std::vector<Real>& b) {
 	m_fMaxTemp = 0;
-	for (int y = 0; y < RES_Y; y++)
-		for (int x = 0; x < RES_X; x++)
-		{
-			float res = b[y * RES_X + x];
-			m_currentGrid->set(x, y, 0, res); 
-			if (res > m_fMaxTemp)
+	for (int z = 0; z < RES_Z; z++) {
+		for (int y = 0; y < RES_Y; y++) {
+			for (int x = 0; x < RES_X; x++)
 			{
-				m_fMaxTemp = res;
+				float res = b[z * RES_Y * RES_X + y * RES_X + x];
+				m_currentGrid->set(x, y, z, res);
+				if (res > m_fMaxTemp)
+				{
+					m_fMaxTemp = res;
+				}
 			}
-		} 
+		}
+	}
 }
 
 void DiffusionSimulator::SetBoundaryToZero()
