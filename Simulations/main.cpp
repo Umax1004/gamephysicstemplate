@@ -51,7 +51,7 @@ DiffusionSimulator* g_pSimulator;
 #endif
 
 DrawingUtilitiesClass * g_pDUC;
-float 	g_fTimestep = 0.001;
+float 	g_fTimestep = 0.01;
 #ifdef ADAPTIVESTEP
 float   g_fTimeFactor = 1;
 #endif

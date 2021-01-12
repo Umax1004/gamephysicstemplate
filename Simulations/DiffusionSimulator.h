@@ -56,12 +56,16 @@ private:
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
 	const float ALPHA = 0.002;
+	const float MAX_TEMP = 100;
+	float SIZE_X = 1;
+	float SIZE_Y = SIZE_X; // We simulate a box
+	float SIZE_Z = SIZE_X;
 	int RES_X = 10;
 	int RES_Y = RES_X;
 	int RES_Z = RES_X;
-	float DEL_X = 1.0 / RES_X;
-	float DEL_Y = 1.0 / RES_Y;
-	float DEL_Z = 1.0 / RES_Z;
+	float DEL_X = SIZE_X / RES_X;
+	float DEL_Y = SIZE_Y / RES_Y;
+	float DEL_Z = SIZE_Z / RES_Z;
 	Grid m_grid1, m_grid2; // Double buffering for the explicit solver
 	Grid* m_currentGrid = &m_grid1;
 

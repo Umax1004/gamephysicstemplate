@@ -60,17 +60,10 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	m_vfMovableObjectPos = Vec3(0, 0, 0);
 	m_vfRotate = Vec3(0, 0, 0);
 	m_grid1 = Grid(RES_X, RES_Y, RES_Z);
-	m_grid2 = Grid(RES_X, RES_Y, RES_Z);
-	//for (int k = 0; k < RES_Z; k++){
-	for (int k=RES_Z/2; k<RES_Z/2+1; k++) { // Initialize only the middle slice for a neater visualization
-		for (int j = 0; j < RES_Y; j++) {
-			for (int i = 0; i < RES_X; i++) {
-				Vec3 point(i, j, k), center(RES_X / 2, RES_Y / 2, RES_Z / 2);
-				float dist = point.squaredDistanceTo(center);
-				//float dist = k * RES_X * RES_Y + j * RES_X + k;
-				//float dist = (i - RES_X / 2) * (i - RES_X / 2) + (j - RES_Y / 2) * (j - RES_Y / 2) + (k - RES_Z / 2) * (k - RES_Z / 2);
-				m_grid1.set(i, j, k, 100 / (1 + dist));
-				//cout << i << j << k << endl;
+	for (int k=std::max(0, int(floor(RES_Z/2.0-RES_Z/10.0))); k<std::min(RES_Z, int(ceil(RES_Z/2.0+RES_Z/10.0))); k++) {
+		for (int j = std::max(0, int(floor(RES_Y/2.0-RES_Y/4.0))); j < std::min(RES_Y, int(ceil(RES_Y/2.0+RES_Y/4.0))); j++) {
+			for (int i = std::max(0, int(floor(RES_X/2.0-RES_X/4.0))); i < std::min(RES_X, int(ceil(RES_X/2.0+RES_X/4.0))); i++) {
+				m_grid1.set(i, j, k, MAX_TEMP);
 			}
 		}
 	}
@@ -92,9 +85,6 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 
 void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
 	Grid* otherGrid = m_currentGrid == &m_grid1 ? &m_grid2 : &m_grid1;
-	DEL_X = 1.0 / RES_X;
-	DEL_Y = 1.0 / RES_Y;
-	DEL_Z = 1.0 / RES_Z;
 	float delX2 = DEL_X * DEL_X;
 	float delY2 = DEL_Y * DEL_Y;
 	float delZ2 = DEL_Z * DEL_Z;
@@ -144,10 +134,22 @@ void TW_CALL DiffusionSimulator::GetDimensionCallback(void* value, void* clientD
 
 void TW_CALL DiffusionSimulator::SetDimensionCallback(const void* value, void* clientData)
 {
-	static_cast<DiffusionSimulator*> (clientData)->RES_X = static_cast<const float*> (value)[0];
-	static_cast<DiffusionSimulator*> (clientData)->RES_Y = static_cast<const float*> (value)[1];
-	static_cast<DiffusionSimulator*> (clientData)->RES_Z = static_cast<const float*> (value)[2];
-	static_cast<DiffusionSimulator*> (clientData)->notifyCaseChanged(static_cast<DiffusionSimulator*> (clientData)->m_iTestCase);
+	DiffusionSimulator& self = *static_cast<DiffusionSimulator*> (clientData);
+	self.RES_X = static_cast<const float*> (value)[0];
+	self.RES_Y = static_cast<const float*> (value)[1];
+	self.RES_Z = static_cast<const float*> (value)[2];
+	if (self.RES_Z == 1) {
+		self.SIZE_Z = 0.1;
+		std::cout << "2D mode!" << std::endl;
+	}
+	else {
+		self.SIZE_Z = self.SIZE_X;
+		std::cout << "3D mode!" << std::endl;
+	}
+	self.DEL_X = self.SIZE_X / self.RES_X;
+	self.DEL_Y = self.SIZE_Y / self.RES_Y;
+	self.DEL_Z = self.SIZE_Z / self.RES_Z;
+	self.notifyCaseChanged(static_cast<DiffusionSimulator*> (clientData)->m_iTestCase);
 	
 }
 
@@ -229,21 +231,16 @@ void DiffusionSimulator::simulateTimestep(float timeStep)
 	}
 }
 
-float sigmoid(float x) {
-	return 1 / (1+1/exp(x));
-}
-
 void DiffusionSimulator::drawObjects()
 {
 	//visualization
-	const float VIS_SIZE = 2;
 	for (int z=0; z<RES_Z; z++)
 		for (int y=0; y<RES_Y; y++)
 			for (int x = 0; x < RES_X; x++) {
-				Vec3 pos(float(x)/RES_X*VIS_SIZE-VIS_SIZE/2, float(y)/RES_Y*VIS_SIZE-VIS_SIZE/2, float(z) / RES_Z * VIS_SIZE - VIS_SIZE / 2);
-				float sigmoid_res = sigmoid(m_currentGrid->get(x, y, z)-2);
-				Vec3 size(sigmoid_res*(VIS_SIZE/RES_X)/2, sigmoid_res * (VIS_SIZE / RES_Y)/2, sigmoid_res * (VIS_SIZE/RES_Z)/2);
-				drawColorfulSphere(pos, size, {sigmoid_res, sigmoid_res, sigmoid_res });
+				Vec3 pos(float(x)/RES_X*SIZE_X-SIZE_X/2, float(y)/RES_Y*SIZE_Y-SIZE_Y/2, float(z) / RES_Z * SIZE_Z - SIZE_Z / 2);
+				float size_raw = std::min(MAX_TEMP, m_currentGrid->get(x, y, z)+MAX_TEMP/20)/MAX_TEMP; // We add the constant to make sure all points are visible, even if they have temp ~= 0
+				Vec3 size(size_raw*DEL_X/2, size_raw * DEL_Y/2, size_raw * DEL_Z/2);
+				drawColorfulSphere(pos, size, { size_raw, size_raw, size_raw});
 			}
 }
 
