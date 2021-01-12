@@ -10,8 +10,8 @@
 class Grid {
 public:
 	// Construtors
-	Grid(int x, int y, int z = 1);
-	float get(int x, int y, int z = 0);
+	Grid(int x, int y, int z);
+	float get(int x, int y, int z);
 	void set(int x, int y, int z, float val);
 private:
 	// Attributes
@@ -46,7 +46,6 @@ private:
 	void setupA(SparseMatrix<Real>& A, float dt) const;
 	void setupB(std::vector<Real>& b) const;
 	void fillT(const std::vector<Real>& b);
-	void SetBoundaryToZero();
 
 private:
 	// Attributes
@@ -57,16 +56,14 @@ private:
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
 	const float ALPHA = 0.002;
-	int RES_X = 40;
+	int RES_X = 10;
 	int RES_Y = RES_X;
-	int RES_Z = 1;
+	int RES_Z = RES_X;
 	float DEL_X = 1.0 / RES_X;
 	float DEL_Y = 1.0 / RES_Y;
 	float DEL_Z = 1.0 / RES_Z;
 	Grid m_grid1, m_grid2; // Double buffering for the explicit solver
 	Grid* m_currentGrid = &m_grid1;
-
-	float m_fMaxTemp = 0;
 
 	static void TW_CALL GetDimensionCallback(void* value, void* clientData);
 	static void TW_CALL SetDimensionCallback(const void* value, void* clientData);

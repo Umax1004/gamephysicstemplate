@@ -61,7 +61,8 @@ void DiffusionSimulator::notifyCaseChanged(int testCase)
 	m_vfRotate = Vec3(0, 0, 0);
 	m_grid1 = Grid(RES_X, RES_Y, RES_Z);
 	m_grid2 = Grid(RES_X, RES_Y, RES_Z);
-	for (int k = 0; k < RES_Z; k++){
+	//for (int k = 0; k < RES_Z; k++){
+	for (int k=RES_Z/2; k<RES_Z/2+1; k++) { // Initialize only the middle slice for a neater visualization
 		for (int j = 0; j < RES_Y; j++) {
 			for (int i = 0; i < RES_X; i++) {
 				Vec3 point(i, j, k), center(RES_X / 2, RES_Y / 2, RES_Z / 2);
@@ -97,22 +98,16 @@ void DiffusionSimulator::diffuseTemperatureExplicit(float ts) {
 	float delX2 = DEL_X * DEL_X;
 	float delY2 = DEL_Y * DEL_Y;
 	float delZ2 = DEL_Z * DEL_Z;
-	m_fMaxTemp = 0;
 	for (int z = 0; z < RES_Z; z++) {
 		for (int y = 0; y < RES_Y; y++) {
 			for (int x = 0; x < RES_X; x++) {
 				float xpart = (m_currentGrid->get(x + 1, y, z) - 2 * m_currentGrid->get(x, y, z) + m_currentGrid->get(x - 1, y, z)) / delX2;
 				float ypart = (m_currentGrid->get(x, y + 1, z) - 2 * m_currentGrid->get(x, y, z) + m_currentGrid->get(x, y - 1, z)) / delY2;
 				float zpart = 0;
-				if (RES_Z > 1 && z > 0 && z < RES_Z)
+				if (RES_Z > 1)
 					zpart = (m_currentGrid->get(x, y, z + 1) - 2 * m_currentGrid->get(x, y, z) + m_currentGrid->get(x, y, z - 1)) / delZ2;
 				float res = (xpart + ypart + zpart) * ALPHA * ts + m_currentGrid->get(x, y, z);
-				bool nan = !isfinite(res);
 				otherGrid->set(x, y, z, res);
-				if (res > m_fMaxTemp)
-				{
-					m_fMaxTemp = res;
-				}
 			}
 		}
 	}
@@ -129,65 +124,15 @@ void DiffusionSimulator::setupB(std::vector<Real>& b) const {
 }
 
 void DiffusionSimulator::fillT(const std::vector<Real>& b) {
-	m_fMaxTemp = 0;
 	for (int z = 0; z < RES_Z; z++) {
 		for (int y = 0; y < RES_Y; y++) {
 			for (int x = 0; x < RES_X; x++)
 			{
 				float res = b[z * RES_Y * RES_X + y * RES_X + x];
 				m_currentGrid->set(x, y, z, res);
-				if (res > m_fMaxTemp)
-				{
-					m_fMaxTemp = res;
-				}
 			}
 		}
 	}
-}
-
-void DiffusionSimulator::SetBoundaryToZero()
-{ 
-	// This cuts edge and not face
-	/*for (int i = 0; i < RES_X; i++)
-	{
-		m_currentGrid->set(i, 0, 0, 0);
-		m_currentGrid->set(i, RES_Y - 1, 0, 0);
-		m_currentGrid->set(i, 0, RES_Z - 1, 0);
-		m_currentGrid->set(i, RES_Y - 1, RES_Z - 1, 0);
-	}
-	for (int i = 1; i < RES_Y-1; i++)
-	{
-		m_currentGrid->set(0, i, 0, 0);
-		m_currentGrid->set(0, i, RES_Z - 1, 0);
-		m_currentGrid->set(RES_X - 1, i, 0, 0);
-		m_currentGrid->set(RES_X - 1, i, RES_Z - 1, 0);
-	}
-	for (int i = 1; i < RES_Z - 1; i++)
-	{
-		m_currentGrid->set(0, 0, i, 0);
-		m_currentGrid->set(RES_X - 1, 0, i, 0);
-		m_currentGrid->set(0, RES_Y - 1, i, 0);
-		m_currentGrid->set(RES_X - 1, RES_Y - 1, i, 0);
-	}*/
-
-	for(int j = 0; j < RES_Y; j++)
-		for (int k = 0; k < RES_Z; k++) {
-			m_currentGrid->set(0, j, k, 0);
-			m_currentGrid->set(RES_X-1, j, k, 0);
-		}
-
-	for (int i = 0; i < RES_X; i++)
-		for (int k = 0; k < RES_Z; k++) {
-			m_currentGrid->set(i, 0, k, 0);
-			m_currentGrid->set(i, RES_Y-1, k, 0);
-		}
-
-	if (RES_Z > 1)
-		for (int i = 0; i < RES_X; i++)
-			for (int j = 0; j < RES_Y; j++) {
-				m_currentGrid->set(i, j, 0, 0);
-				m_currentGrid->set(i, j, RES_Z-1, 0);
-			}
 }
 
 void TW_CALL DiffusionSimulator::GetDimensionCallback(void* value, void* clientData)
@@ -206,8 +151,8 @@ void TW_CALL DiffusionSimulator::SetDimensionCallback(const void* value, void* c
 	
 }
 
-static void safe_set_element(SparseMatrix<Real>& m, int x, int y, int z, Real value) {
-	if (x < 0 || x >= m.n || y < 0 || y >= m.n || z < 0 || z >= m.n)
+static void safe_set_element(SparseMatrix<Real>& m, int x, int y, Real value) {
+	if (x < 0 || x >= m.n || y < 0 || y >= m.n)
 		return;
 	m.set_element(y, x, value);
 }
@@ -221,16 +166,16 @@ void DiffusionSimulator::setupA(SparseMatrix<Real>& A, float dt) const {
 		for (int y = 0; y < RES_Y; y++) {
 			for (int x = 0; x < RES_X; x++) {
 				const int x_y_z = z * RES_X * RES_Y + y * RES_X + x;
-				safe_set_element(A, x_y_z, x_y_z - 1, z, -F_X); // x - 1 , y, z
-				safe_set_element(A, x_y_z, x_y_z + 1, z, -F_X); // x + 1, y, z
+				safe_set_element(A, x_y_z, x_y_z - 1, -F_X); // x - 1 , y, z
+				safe_set_element(A, x_y_z, x_y_z + 1, -F_X); // x + 1, y, z
 
-				safe_set_element(A, x_y_z, x_y_z - RES_Y, z, -F_Y); // x, y - 1
-				safe_set_element(A, x_y_z, x_y_z + RES_Y, z, -F_Y); // x, y + 1, z
+				safe_set_element(A, x_y_z, x_y_z - RES_X, -F_Y); // x, y - 1
+				safe_set_element(A, x_y_z, x_y_z + RES_X, -F_Y); // x, y + 1, z
 
-				safe_set_element(A, x_y_z, x_y_z, z, 1 + 2 * (F_X + F_Y + F_Z)); // x, y, z
+				safe_set_element(A, x_y_z, x_y_z, 1 + 2 * (F_X + F_Y + F_Z)); // x, y, z
 
-				safe_set_element(A, x_y_z, x_y_z + RES_X * RES_Y, z, -F_Z); // x , y, z + 1
-				safe_set_element(A, x_y_z, x_y_z - RES_X * RES_Y, z, -F_Z); // x , y, z - 1
+				safe_set_element(A, x_y_z, x_y_z + RES_X * RES_Y, -F_Z); // x , y, z + 1
+				safe_set_element(A, x_y_z, x_y_z - RES_X * RES_Y, -F_Z); // x , y, z - 1
 			}
 		}
 	}
@@ -282,8 +227,6 @@ void DiffusionSimulator::simulateTimestep(float timeStep)
 		diffuseTemperatureImplicit(timeStep);
 		break;
 	}
-
-	SetBoundaryToZero();
 }
 
 float sigmoid(float x) {
@@ -298,11 +241,9 @@ void DiffusionSimulator::drawObjects()
 		for (int y=0; y<RES_Y; y++)
 			for (int x = 0; x < RES_X; x++) {
 				Vec3 pos(float(x)/RES_X*VIS_SIZE-VIS_SIZE/2, float(y)/RES_Y*VIS_SIZE-VIS_SIZE/2, float(z) / RES_Z * VIS_SIZE - VIS_SIZE / 2);
-				float sigmoid_res = sigmoid(m_currentGrid->get(x, y)-2);
-				//Vec3 size(sigmoid_res*(VIS_SIZE/RES_X), sigmoid_res * (VIS_SIZE / RES_Y), m_currentGrid->get(x, y)/300);
-				float normalizedValue = m_currentGrid->get(x, y, z) / m_fMaxTemp;
-				Vec3 size(normalizedValue/(20), normalizedValue/ (20), normalizedValue/ (20));
-				drawColorfulSphere(pos, size, {normalizedValue, normalizedValue, normalizedValue });
+				float sigmoid_res = sigmoid(m_currentGrid->get(x, y, z)-2);
+				Vec3 size(sigmoid_res*(VIS_SIZE/RES_X)/2, sigmoid_res * (VIS_SIZE / RES_Y)/2, sigmoid_res * (VIS_SIZE/RES_Z)/2);
+				drawColorfulSphere(pos, size, {sigmoid_res, sigmoid_res, sigmoid_res });
 			}
 }
 
