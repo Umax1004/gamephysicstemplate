@@ -207,7 +207,7 @@ void TW_CALL DiffusionSimulator::SetDimensionCallback(const void* value, void* c
 }
 
 static void safe_set_element(SparseMatrix<Real>& m, int x, int y, int z, Real value) {
-	if (x < 0 || x >= m.n || y < 0 || y >= m.n)
+	if (x < 0 || x >= m.n || y < 0 || y >= m.n || z < 0 || z >= m.n)
 		return;
 	m.set_element(y, x, value);
 }
@@ -220,12 +220,17 @@ void DiffusionSimulator::setupA(SparseMatrix<Real>& A, float dt) const {
 	for (int z = 0; z < RES_Z; z++) {
 		for (int y = 0; y < RES_Y; y++) {
 			for (int x = 0; x < RES_X; x++) {
-				const int x_y = z * RES_X * RES_Y + y * (RES_X)+x;
-				safe_set_element(A, x_y, x_y - 1, z, -F_X);
-				safe_set_element(A, x_y, x_y - RES_Y, z, -F_Y);
-				safe_set_element(A, x_y, x_y, z, 1 + 2 * (F_X + F_Y));
-				safe_set_element(A, x_y, x_y + 1, z, -F_X);
-				safe_set_element(A, x_y, x_y + RES_Y, z, -F_Y);
+				const int x_y_z = z * RES_X * RES_Y + y * RES_X + x;
+				safe_set_element(A, x_y_z, x_y_z - 1, z, -F_X); // x - 1 , y, z
+				safe_set_element(A, x_y_z, x_y_z + 1, z, -F_X); // x + 1, y, z
+
+				safe_set_element(A, x_y_z, x_y_z - RES_Y, z, -F_Y); // x, y - 1
+				safe_set_element(A, x_y_z, x_y_z + RES_Y, z, -F_Y); // x, y + 1, z
+
+				safe_set_element(A, x_y_z, x_y_z, z, 1 + 2 * (F_X + F_Y + F_Z)); // x, y, z
+
+				safe_set_element(A, x_y_z, x_y_z + RES_X * RES_Y, z, -F_Z); // x , y, z + 1
+				safe_set_element(A, x_y_z, x_y_z - RES_X * RES_Y, z, -F_Z); // x , y, z - 1
 			}
 		}
 	}
