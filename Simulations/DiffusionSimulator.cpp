@@ -302,7 +302,8 @@ void DiffusionSimulator::drawObjects()
 				//Vec3 size(sigmoid_res*(VIS_SIZE/RES_X), sigmoid_res * (VIS_SIZE / RES_Y), m_currentGrid->get(x, y)/300);
 				float normalizedValue = m_currentGrid->get(x, y, z) / m_fMaxTemp;
 				Vec3 size(normalizedValue/(20), normalizedValue/ (20), normalizedValue/ (20));
-				drawColorfulSphere(pos, size, {normalizedValue, normalizedValue, normalizedValue });
+				Vec3 rgb(sqrt(normalizedValue), pow(normalizedValue, 3), (sin(2 * M_PI * normalizedValue) >= 0  ? sin(2 * M_PI * normalizedValue) : 0));
+				drawColorfulSphere(pos, size, rgb);
 			}
 }
 
