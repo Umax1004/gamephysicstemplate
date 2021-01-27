@@ -25,7 +25,7 @@ using namespace GamePhysics;
 //#define MASS_SPRING_SYSTEM
 //#define RIGID_BODY_SYSTEM
 //#define SPH_SYSTEM
-#define DIFFUSION_SYSTEM
+#define SPH_SYSTEM
 
 #ifdef TEMPLATE_DEMO
 #include "TemplateSimulator.h"
@@ -42,7 +42,7 @@ int g_iIntegrator = MIDPOINT;
 RigidBodySystemSimulator* g_pSimulator;
 #endif
 #ifdef SPH_SYSTEM
-//#include "SPHSystemSimulator.h"
+#include "SPHSystemSimulator.h"
 SPHSystemSimulator* g_pSimulator;
 #endif
 #ifdef DIFFUSION_SYSTEM
@@ -429,7 +429,7 @@ int main(int argc, char* argv[])
 	g_pSimulator= new RigidBodySystemSimulator();
 #endif
 #ifdef SPH_SYSTEM
-	//g_pSimulator= new SPHSystemSimulator();
+	g_pSimulator= new SPHSystemSimulator();
 #endif
 #ifdef DIFFUSION_SYSTEM
 	g_pSimulator= new DiffusionSimulator();
