@@ -35,6 +35,7 @@ public:
 	const char* getIntegratorsStr();
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
+	void drawSprings(ID3D11DeviceContext* pd3dImmediateContext);
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
@@ -64,7 +65,8 @@ public:
 		m_iIntegrator = integrator;
 	}
 
-private:
+public:
+//private:
 	// Data Attributes
 	float m_fMass=1;
 	float m_fStiffness=1;

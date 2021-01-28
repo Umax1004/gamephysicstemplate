@@ -97,12 +97,13 @@ public:
 	Vec3 getLinearVelocityOfRigidBody(int i);
 	Vec3 getAngularVelocityOfRigidBody(int i);
 	void applyForceOnBody(int i, Vec3 loc, Vec3 force);
-	void addRigidBody(Vec3 position, Vec3 size, double mass); // size in {x, y, z}
+	int addRigidBody(Vec3 position, Vec3 size, double mass); // size in {x, y, z}
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
 	void setAngularVelocityOf(int i, Vec3 ang_vel);
 	void setGravity(Vec3 g);
-private:
+//private:
+public:
 	void integratePosition(float ts);
 	void integrateVelocity(float ts);
 	void integrateOrientation(float ts);
@@ -113,7 +114,8 @@ private:
 	static void TW_CALL GetGravityCallback(void* value, void* clientData);
 	static void TW_CALL SetGravityCallback(const void* value, void* clientData);
 
-private:
+public:
+//private:
 	// Attributes
 	// add your RigidBodySystem data members, for e.g.,
 	// RigidBodySystem * m_pRigidBodySystem; 

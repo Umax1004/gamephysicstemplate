@@ -428,8 +428,9 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force) {
 	bodies[i].force += force;
 	bodies[i].torque += cross(loc-bodies[i].pos, force);
 }
-void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, double mass) {
+int RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, double mass) {
 	bodies.push_back(Body{position, size, (double)mass});
+	return bodies.size() - 1;
 }
 void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation) {
 	bodies[i].ang_pos = orientation;

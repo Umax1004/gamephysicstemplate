@@ -30,7 +30,7 @@ void MassSpringSystemSimulator::reset()
 	m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
 }
 
-void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
+void MassSpringSystemSimulator::drawSprings(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	PrimitiveBatch<VertexPositionColor> g_pPrimitiveBatchPositionColor = PrimitiveBatch<VertexPositionColor>(pd3dImmediateContext);
 
@@ -48,6 +48,11 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateCont
 
 	}
 	g_pPrimitiveBatchPositionColor.End();
+}
+
+void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
+{
+	drawSprings(pd3dImmediateContext);
 
 	for (int i = 0; i < m_vPoints.size(); i++)
 	{
