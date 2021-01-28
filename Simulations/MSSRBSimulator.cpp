@@ -57,6 +57,7 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 		int p1 = addRigidBody(Vec3(0.0, 0.5f, 0), Vec3(0.2, 0.2f, 0.2), 1);
 		addSpring(p0, p1, 0.75);
 		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.5, 1, 1.5), INFINITY);
+		addRigidBody(Vec3(0, -0.749, 0), Vec3(0.5, 0.5, 0.5), 3);
 		rb.m_fBounciness = 0.75;
 		rb.m_fRotationalFriction = 0.98;
 	}
