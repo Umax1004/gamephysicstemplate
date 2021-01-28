@@ -22,10 +22,9 @@ public:
 
 	// Specific Functions
 	void setGravity(Vec3 g);
-    void setMass(float mass); // MassSpringSystemSimulator does not support assigning different masses to different objects.
 	void setStiffness(float stiffness);
 	void setDampingFactor(float damping); // Note that only springs are damped
-	int addRigidBody(Vec3 position, Vec3 size); // size in {x, y, z}
+	int addRigidBody(Vec3 position, Vec3 size, double mass); // size in {x, y, z}
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
 	void setAngularVelocityOf(int i, Vec3 ang_vel);

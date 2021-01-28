@@ -50,27 +50,27 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 	m_iTestCase = testCase;
 
 	if (m_iTestCase == 0) {
-		setMass(1.0f);
 		setDampingFactor(1);
 		setStiffness(30.0f);
-		setGravity({ 0, -3, 0 });
-		int p0 = addRigidBody(Vec3(-0.5, 0.5f, 0), Vec3(0.2, 0.2f, 0.2f));
-		int p1 = addRigidBody(Vec3(0.0, 0.5f, 0), Vec3(0.2, 0.2f, 0.2));
-		addSpring(p0, p1, 1);
+		setGravity({ 0, -10, 0 });
+		int p0 = addRigidBody(Vec3(-0.5, 0.5f, 0), Vec3(0.2, 0.2f, 0.2f), 1);
+		int p1 = addRigidBody(Vec3(0.0, 0.5f, 0), Vec3(0.2, 0.2f, 0.2), 1);
+		addSpring(p0, p1, 0.75);
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.5, 1, 1.5), INFINITY);
+		rb.m_fBounciness = 0.75;
+		rb.m_fRotationalFriction = 0.98;
 	}
 	else if (m_iTestCase == 1) { // Basic Mass Spring
-		setMass(10.0f);
 		setDampingFactor(0);
 		setStiffness(40.0f);
 		setGravity(Vec3());
-		int p0 = addRigidBody(Vec3(0, 0, 0), Vec3(0.1, 0.1, 0.1));
-		int p1 = addRigidBody(Vec3(0, 2, 0), Vec3(0.1, 0.1, 0.1));
+		int p0 = addRigidBody(Vec3(0, 0, 0), Vec3(0.1, 0.1, 0.1), 1);
+		int p1 = addRigidBody(Vec3(0, 2, 0), Vec3(0.1, 0.1, 0.1), 1);
 		addSpring(p0, p1, 1);
 		isFirst = true;
 	}
 	else if (m_iTestCase == 2) { //Complex
 
-		setMass(0.5f);
 		setDampingFactor(0.5);
 		setStiffness(500.0f);
 
@@ -78,19 +78,18 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 		const float wholeSpringLength = 0.6f;
 		float x = 0.f, y = 0.5f;
 		const float step = wholeSpringLength / static_cast<float>(massPointsAmount);
-		int previousPointId = addRigidBody(Vec3(x, y, 0), Vec3(0.01, 0.01, 0.01));
+		int previousPointId = addRigidBody(Vec3(x, y, 0), Vec3(0.01, 0.01, 0.01), 0.5);
 		for (int i = 0; i < massPointsAmount; ++i)
 		{
 			x -= step;
 			y -= step / 2;
-			const int currentPointId = addRigidBody(Vec3(x, y, 0), Vec3(0.01, 0.01, 0.01));
+			const int currentPointId = addRigidBody(Vec3(x, y, 0), Vec3(0.01, 0.01, 0.01), 0.5);
 			addSpring(previousPointId, currentPointId, wholeSpringLength / massPointsAmount);
 			previousPointId = currentPointId;
 		}
 
 	}
 	else if (m_iTestCase == 3) { // Cube
-		setMass(1.0f);
 		setDampingFactor(1);
 		setStiffness(300.0f);
 		setGravity(Vec3{ 0, -9.8, 0 });
@@ -100,7 +99,7 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 			{
 				for (int z = -1; z <= 1; z++)
 				{
-					int temp = addRigidBody(Vec3(x, y, z), {0.2, 0.2, 0.2});
+					int temp = addRigidBody(Vec3(x, y, z), {0.2, 0.2, 0.2}, 1);
 				}
 			}
 		}
@@ -130,11 +129,10 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 		
 	}
 	else if (m_iTestCase == 4) {
-		setMass(0.5f);
 		setDampingFactor(0.5);
 		setGravity(Vec3{ 0, -9.8, 0 });
 		setGravity(Vec3{ 0, -9.8, 0 });
-		addRigidBody({ 0, 0.5, 0 }, {0.2, 0.2, 0.2});
+		addRigidBody({ 0, 0.5, 0 }, {0.2, 0.2, 0.2}, 0.5);
 	}
 	else
 		throw "Not implemented";
@@ -175,10 +173,6 @@ void MSSRBSimulator::onMouse(int x, int y)
 void MSSRBSimulator::setGravity(Vec3 g) {
 	rb.setGravity(g);
 }
-void MSSRBSimulator::setMass(float mass)
-{
-	mss.setMass(mass);
-}
 void MSSRBSimulator::setStiffness(float stiffness)
 {
 	mss.setStiffness(stiffness);
@@ -187,10 +181,10 @@ void MSSRBSimulator::setDampingFactor(float damping)
 {
 	mss.setDampingFactor(damping);
 }
-int MSSRBSimulator::addRigidBody(Vec3 position, Vec3 size)
+int MSSRBSimulator::addRigidBody(Vec3 position, Vec3 size, double mass)
 {
-	int i1 = mss.addMassPoint(position, Vec3{0,0,0}, false);
-	int i2 = rb.addRigidBody(position, size, mss.m_fMass);
+	int i1 = mss.addMassPoint(position, Vec3{0,0,0}, mass==INFINITY); // We don't need to tell the MassSpringSystemSimulator about object masses. It only needs to compute the elastic forces, which are independent of object masses.
+	int i2 = rb.addRigidBody(position, size, mass);
 	assert(i1 == i2);
 	return i1;
 }
