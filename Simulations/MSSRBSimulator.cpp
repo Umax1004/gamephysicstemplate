@@ -53,9 +53,39 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 		setDampingFactor(1);
 		setStiffness(30.0f);
 		setGravity({ 0, -10, 0 });
-		int p0 = addRigidBody(Vec3(-0.5, 0.5f, 0), Vec3(0.2, 0.2f, 0.2f), 1);
-		int p1 = addRigidBody(Vec3(0.0, 0.5f, 0), Vec3(0.2, 0.2f, 0.2), 1);
-		addSpring(p0, p1, 0.75);
+		//int p0 = addRigidBody(Vec3(-0.5, 0.5f, 0), Vec3(0.2, 0.2f, 0.2f), 1);
+		//int p1 = addRigidBody(Vec3(0.0, 0.5f, 0), Vec3(0.2, 0.2f, 0.2), 1);
+		//addSpring(p0, p1, 0.75);
+		float offsetX = -2;
+		float offsetY = -2;
+		float invScale = 5;
+		int xSize = 5;
+		int ySize = 5;
+		float box_size = 0.05;
+		for (int y = 0; y < ySize; y++)
+		{
+			for (int x = 0; x < xSize; x++)
+			{
+				int temp = addRigidBody(Vec3((x + offsetX)/invScale, 0, (y + offsetY)/invScale), { box_size, box_size, box_size }, 1);
+			}
+		}
+		for (int y = 0; y < ySize; y++)
+		{
+			for (int x = 0; x < xSize; x++)
+			{
+				if (y != 0)
+				{
+					addSpring((y * xSize) + x , ((y - 1) * xSize) + x, 1/invScale);
+				}
+				if (x != xSize-1)
+				{
+					addSpring((y * xSize) + x , (y * xSize) + (x + 1) , 1/invScale);
+				}
+			}
+		}
+
+		
+
 		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.5, 1, 1.5), INFINITY);
 		addRigidBody(Vec3(0, -0.749, 0), Vec3(0.5, 0.5, 0.5), 3);
 		rb.m_fBounciness = 0.75;

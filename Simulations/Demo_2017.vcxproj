@@ -226,6 +226,7 @@
   <ItemGroup>
     <ClCompile Include="DiffusionSimulator.cpp" />
     <ClCompile Include="MassSpringSystemSimulator.cpp" />
+    <ClCompile Include="MSSRBSimulator.cpp" />
     <ClCompile Include="RigidBodySystemSimulator.cpp" />
     <ClCompile Include="SphereSystemSimulator.cpp" />
     <ClCompile Include="SPHSystemSimulator.cpp" />
@@ -238,6 +239,7 @@
     <ClInclude Include="DiffusionSimulator.h" />
     <ClInclude Include="DrawingUtilitiesClass.h" />
     <ClInclude Include="MassSpringSystemSimulator.h" />
+    <ClInclude Include="MSSRBSimulator.h" />
     <ClInclude Include="RigidBodySystemSimulator.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="SphereSystemSimulator.h" />
