@@ -6,7 +6,7 @@ MSSRBSimulator::MSSRBSimulator()
 }
 
 const char* MSSRBSimulator::getTestCasesStr() {
-	return "PENDULUM,DEMO,COMPLEX,CUBE,BOUNCE";
+	return "DEMO,CLOTH,COMPLEX,CUBE,BOUNCE";
 }
 
 const char* MSSRBSimulator::getIntegratorsStr() {
@@ -49,13 +49,25 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 
 	m_iTestCase = testCase;
 
-	if (m_iTestCase == 0) {
+	if (m_iTestCase == 0) { // Demo
 		setDampingFactor(1);
 		setStiffness(30.0f);
 		setGravity({ 0, -10, 0 });
-		//int p0 = addRigidBody(Vec3(-0.5, 0.5f, 0), Vec3(0.2, 0.2f, 0.2f), 1);
-		//int p1 = addRigidBody(Vec3(0.0, 0.5f, 0), Vec3(0.2, 0.2f, 0.2), 1);
-		//addSpring(p0, p1, 0.75);
+		int p0 = addRigidBody(Vec3(-0.5, 0.5f, 0), Vec3(0.2, 0.2f, 0.2f), 1);
+		int p1 = addRigidBody(Vec3(0.0, 0.5f, 0), Vec3(0.2, 0.2f, 0.2), 1);
+		addSpring(p0, p1, 0.75);
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.5, 1, 1.5), INFINITY);
+		addRigidBody(Vec3(0, -0.749, 0), Vec3(0.5, 0.5, 0.5), 3);
+		rb.m_fBounciness = 0.75;
+		rb.m_fRotationalFriction = 0.98;
+	}
+	else if (m_iTestCase == 1) { // Cloth
+		setDampingFactor(1);
+		setStiffness(200.0f);
+		setGravity({ 0, -10, 0 });
+		rb.m_fBounciness = 0.75;
+		rb.m_fRotationalFriction = 0.98;
+
 		float offsetX = -2;
 		float offsetY = -2;
 		float invScale = 5;
@@ -84,21 +96,8 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 			}
 		}
 
-		
-
-		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.5, 1, 1.5), INFINITY);
-		addRigidBody(Vec3(0, -0.749, 0), Vec3(0.5, 0.5, 0.5), 3);
-		rb.m_fBounciness = 0.75;
-		rb.m_fRotationalFriction = 0.98;
-	}
-	else if (m_iTestCase == 1) { // Basic Mass Spring
-		setDampingFactor(0);
-		setStiffness(40.0f);
-		setGravity(Vec3());
-		int p0 = addRigidBody(Vec3(0, 0, 0), Vec3(0.1, 0.1, 0.1), 1);
-		int p1 = addRigidBody(Vec3(0, 2, 0), Vec3(0.1, 0.1, 0.1), 1);
-		addSpring(p0, p1, 1);
-		isFirst = true;
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.5, 1, 1.5), INFINITY); // Ground
+		addRigidBody(Vec3(0, -0.749, 0), Vec3(0.5, 0.5, 0.5), 3); // Table resting on the ground
 	}
 	else if (m_iTestCase == 2) { //Complex
 
