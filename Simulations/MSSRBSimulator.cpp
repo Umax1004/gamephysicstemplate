@@ -96,7 +96,7 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 			}
 		}
 
-		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.5, 1, 1.5), INFINITY); // Ground
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.0, 1, 1.0), INFINITY); // Ground
 		addRigidBody(Vec3(0, -0.749, 0), Vec3(0.5, 0.5, 0.5), 3); // Table resting on the ground
 	}
 	else if (m_iTestCase == 2) { //Complex

@@ -45,14 +45,14 @@ void RigidBodySystemSimulator::reset()
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
-	DUC->beginLine();
+	/*DUC->beginLine();
 
-	/*for (const auto& t : impulses)
+	for (const auto& t : impulses)
 	{
 		Vec3 position = std::get<1>(t);
 		Vec3 direction = std::get<2>(t);
 		DUC->drawLine(position.toDirectXVector(), Colors::Red, (position + 0.5 * direction).toDirectXVector(), Colors::Blue);
-	}*/
+	}
 
 	for (const auto& p : collisions)
 	{
@@ -63,7 +63,7 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateConte
 		}
 	}
 
-	DUC->endLine();
+	DUC->endLine();*/
 
 	//cout << "Number of bodies: " << bodies.size() << endl;
 	for (int i = 0; i < bodies.size(); i++)
