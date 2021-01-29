@@ -127,6 +127,8 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 				}
 			}
 		}
+
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(3, 1, 3), INFINITY); // Ground plane
 		
 	}
 	else if (m_iTestCase == 4) {

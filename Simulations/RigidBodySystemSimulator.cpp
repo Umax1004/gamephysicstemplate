@@ -291,10 +291,20 @@ void RigidBodySystemSimulator::resolveCollisions() {
 	{
 		Body& a = bodies[i];
 		Mat4 MatrixA = a.getObjToWorldMat4Matrix();
+		float a_max_len = std::max(a.size.x, std::max(a.size.y, a.size.z));
 
 		for (auto j = i + 1; j < bodies.size(); ++j)
 		{
 			Body& b = bodies[j];
+			float b_max_len = std::max(b.size.x, std::max(b.size.y, b.size.z));
+
+			float dist_threshold = (a_max_len + b_max_len) / 2;
+			dist_threshold *= dist_threshold;
+			dist_threshold *= 3;
+
+			if (a.pos.squaredDistanceTo(b.pos) > dist_threshold) // No collision
+				continue;
+
 			Mat4 MatrixB = b.getObjToWorldMat4Matrix();
 
 			CollisionInfo ci = checkCollisionSAT(MatrixA, MatrixB);
