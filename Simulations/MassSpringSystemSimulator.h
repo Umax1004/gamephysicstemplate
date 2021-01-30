@@ -52,7 +52,6 @@ public:
 	void addSpring(int masspoint1, int masspoint2, float initialLength);
 	int getNumberOfMassPoints();
 	int getNumberOfSprings();
-	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
 	void applyExternalForce(Vec3 force);
 
@@ -96,5 +95,6 @@ public:
 	void integratePositionsEuler(float ts);
 	void integrateVelocitiesEuler(float ts);
 	void resolveCollisions();
+	Vec3 getPositionOfMassPoint(int index);
 };
 #endif

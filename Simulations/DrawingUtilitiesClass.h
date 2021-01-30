@@ -396,6 +396,17 @@ void DrawTriangleUsingShaders()
 	g_pd3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_pd3dImmediateContext->Draw(3, 0);
 }
+void DrawCustomTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3)
+{
+    DrawCustomTriangle(pos1.toDirectXVector(), pos2.toDirectXVector(), pos3.toDirectXVector());
+}
+void DrawCustomTriangle(const XMVECTOR pos1, const XMVECTOR& pos2, const XMVECTOR pos3)
+{
+    VertexPositionColor v1(pos1, Colors::Yellow);
+    VertexPositionColor v2(pos2, Colors::Yellow);
+    VertexPositionColor v3(pos3, Colors::Yellow);
+    g_pPrimitiveBatchPositionColor->DrawTriangle(v1,v2,v3);
+}
 
 void beginLine()
 {

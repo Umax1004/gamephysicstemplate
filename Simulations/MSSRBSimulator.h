@@ -49,6 +49,14 @@ private:
 	//For 1st result print
 	bool isFirst = true;
 
+	float invScale = 9;
+	int xSize = 9;
+	int ySize = 9;
+	float offsetX = -1 * floor(xSize / 2);
+	float offsetY = -1 * floor(ySize / 2);
+	float box_size = 0.005;
+	float mass = 0.5;
+
 	// Methods
 };
 #endif

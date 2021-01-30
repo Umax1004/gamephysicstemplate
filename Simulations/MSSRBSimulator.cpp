@@ -35,6 +35,26 @@ void MSSRBSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	mss.drawSprings(pd3dImmediateContext);
 	rb.drawFrame(pd3dImmediateContext);
+	if (m_iTestCase == 1)
+	{
+		DUC->beginLine();
+		for (int y = 0; y < ySize - 1; y++)
+		{
+			for (int x = 0; x < xSize - 1; x++)
+			{
+				//cout << x << y << endl;
+				if (y < ySize - 1 && x < xSize - 1)
+				{
+					//cout << mss.m_vPoints.size() << " " << y * xSize + x << endl;
+					//cout << mss.getPositionOfMassPoint(y * xSize + x) << endl;
+					DUC->DrawCustomTriangle(mss.getPositionOfMassPoint(y * xSize + x), mss.getPositionOfMassPoint((y + 1) * xSize + x), mss.getPositionOfMassPoint(y * xSize + x + 1));
+					DUC->DrawCustomTriangle(mss.getPositionOfMassPoint((y + 1) * xSize + x), mss.getPositionOfMassPoint((y + 1) * xSize + x + 1), mss.getPositionOfMassPoint(y * xSize + x + 1));
+				}
+			}
+		}
+		DUC->endLine();
+	}
+	
 }
 
 void MSSRBSimulator::notifyCaseChanged(int testCase)
@@ -68,17 +88,11 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 		rb.m_fBounciness = 0.75;
 		rb.m_fRotationalFriction = 0.98;
 
-		float offsetX = -2;
-		float offsetY = -2;
-		float invScale = 5;
-		int xSize = 5;
-		int ySize = 5;
-		float box_size = 0.05;
 		for (int y = 0; y < ySize; y++)
 		{
 			for (int x = 0; x < xSize; x++)
 			{
-				int temp = addRigidBody(Vec3((x + offsetX)/invScale, 0, (y + offsetY)/invScale), { box_size, box_size, box_size }, 1);
+				int temp = addRigidBody(Vec3((x + offsetX)/invScale, 0, (y + offsetY)/invScale), { box_size, box_size, box_size }, mass);
 			}
 		}
 		for (int y = 0; y < ySize; y++)
