@@ -398,14 +398,16 @@ void DrawTriangleUsingShaders()
 }
 void DrawCustomTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3)
 {
-    DrawCustomTriangle(pos1.toDirectXVector(), pos2.toDirectXVector(), pos3.toDirectXVector());
+    Vec3 n = cross((pos2 - pos1), (pos3 - pos1));
+    n /= (n.x + n.y + n.z);
+    DrawCustomTriangle(pos1.toDirectXVector(), pos2.toDirectXVector(), pos3.toDirectXVector(), n.toDirectXVector());
 }
-void DrawCustomTriangle(const XMVECTOR pos1, const XMVECTOR& pos2, const XMVECTOR pos3)
+void DrawCustomTriangle(const XMVECTOR pos1, const XMVECTOR& pos2, const XMVECTOR pos3, const XMVECTOR normal)
 {
-    VertexPositionColor v1(pos1, Colors::Yellow);
-    VertexPositionColor v2(pos2, Colors::Yellow);
-    VertexPositionColor v3(pos3, Colors::Yellow);
-    g_pPrimitiveBatchPositionColor->DrawTriangle(v1,v2,v3);
+    VertexPositionNormal v1(pos1, normal);
+    VertexPositionNormal v2(pos2, normal);
+    VertexPositionNormal v3(pos3, normal);
+    g_pPrimitiveBatchPositionNormal->DrawTriangle(v1,v2,v3);
 }
 
 void beginLine()
@@ -415,6 +417,15 @@ void beginLine()
 	g_pd3dImmediateContext->IASetInputLayout(g_pInputLayoutPositionColor);
 	// Draw
     g_pPrimitiveBatchPositionColor->Begin();
+}
+
+void beginTriangle()
+{
+    g_pEffectPositionNormal->SetWorld(g_camera.GetWorldMatrix());
+    g_pEffectPositionNormal->Apply(g_pd3dImmediateContext);
+    g_pd3dImmediateContext->IASetInputLayout(g_pInputLayoutPositionNormal);
+    // Draw
+    g_pPrimitiveBatchPositionNormal->Begin();
 }
 void drawLine(Vec3 pos1,Vec3 color1, Vec3 pos2,Vec3 color2)
 {
@@ -430,6 +441,10 @@ void drawLine(const XMVECTOR pos1,const XMVECTOR &color1, const XMVECTOR pos2,co
 void endLine()
 {
 	g_pPrimitiveBatchPositionColor->End();
+}
+void endTriangle()
+{
+    g_pPrimitiveBatchPositionNormal->End();
 }
 };
 #endif

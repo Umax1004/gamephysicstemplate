@@ -37,7 +37,7 @@ void MSSRBSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 	rb.drawFrame(pd3dImmediateContext);
 	if (m_iTestCase == 1)
 	{
-		DUC->beginLine();
+		DUC->beginTriangle();
 		for (int y = 0; y < ySize - 1; y++)
 		{
 			for (int x = 0; x < xSize - 1; x++)
@@ -47,12 +47,12 @@ void MSSRBSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 				{
 					//cout << mss.m_vPoints.size() << " " << y * xSize + x << endl;
 					//cout << mss.getPositionOfMassPoint(y * xSize + x) << endl;
-					DUC->DrawCustomTriangle(mss.getPositionOfMassPoint(y * xSize + x), mss.getPositionOfMassPoint((y + 1) * xSize + x), mss.getPositionOfMassPoint(y * xSize + x + 1));
+					DUC->DrawCustomTriangle( mss.getPositionOfMassPoint((y + 1) * xSize + x), mss.getPositionOfMassPoint(y * xSize + x + 1), mss.getPositionOfMassPoint(y * xSize + x));
 					DUC->DrawCustomTriangle(mss.getPositionOfMassPoint((y + 1) * xSize + x), mss.getPositionOfMassPoint((y + 1) * xSize + x + 1), mss.getPositionOfMassPoint(y * xSize + x + 1));
 				}
 			}
 		}
-		DUC->endLine();
+		DUC->endTriangle();
 	}
 	
 }
