@@ -32,7 +32,9 @@ public:
 
 	//Tweakbar's Callbacks
 	static void TW_CALL GetGravityCallback(void* value, void* clientData);
+	static void TW_CALL GetClothCallback(void* value, void* clientData);
 	static void TW_CALL SetGravityCallback(const void* value, void* clientData);
+	static void TW_CALL SetClothCallback(const void* value, void* clientData);
 
 	void setIntegrator(int integrator) {
 		m_iIntegrator = integrator;

@@ -23,12 +23,15 @@ void MSSRBSimulator::initUI(DrawingUtilitiesClass* DUC)
 	TwAddVarRW(DUC->g_pTweakBar, "Mass", TW_TYPE_FLOAT, &m_fMass, " min=0 group='Simulation Params' label='Mass of Points'");
 	TwAddVarRW(DUC->g_pTweakBar, "Damping", TW_TYPE_FLOAT, &m_fDamping, " min=0 group='Simulation Params' label='Damping of Spring'");
 	TwAddVarCB(DUC->g_pTweakBar, "Gravity", TW_TYPE_DIR3F, SetGravityCallback, GetGravityCallback , &m_externalForce, "group='Simulation Params' label='Gravity'");*/
+	TwAddVarCB(DUC->g_pTweakBar, "Dimension", TW_TYPE_DIR3F, SetClothCallback, GetClothCallback, this, "group='Simulation Params' label='Dimension'");
 }
 
 void MSSRBSimulator::reset()
 {
 	rb.reset();
 	mss.reset();
+	offsetX = -1 * floor(xSize / 2);
+	offsetY = -1 * floor(ySize / 2);
 }
 
 void MSSRBSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
@@ -253,3 +256,22 @@ void TW_CALL MSSRBSimulator::SetGravityCallback(const void* value, void* clientD
 	static_cast<Vec3*> (clientData)->y = static_cast<const float*> (value)[1];
 	static_cast<Vec3*> (clientData)->z = static_cast<const float*> (value)[2];
 }
+
+void TW_CALL MSSRBSimulator::GetClothCallback(void* value, void* clientData)
+{
+
+	static_cast<float*> (value)[0] = static_cast<const MSSRBSimulator*>(clientData)->xSize;
+	static_cast<float*> (value)[1] = static_cast<const MSSRBSimulator*>(clientData)->ySize;
+	static_cast<float*> (value)[2] = static_cast<const MSSRBSimulator*>(clientData)->invScale;
+	//cout << "Get called" << endl;
+}
+
+void TW_CALL MSSRBSimulator::SetClothCallback(const void* value, void* clientData)
+{
+	static_cast<MSSRBSimulator*> (clientData)->xSize = static_cast<const float*> (value)[0];
+	static_cast<MSSRBSimulator*> (clientData)->ySize = static_cast<const float*> (value)[1];
+	static_cast<MSSRBSimulator*> (clientData)->invScale = static_cast<const float*> (value)[2];
+	static_cast<MSSRBSimulator*> (clientData)->reset();
+	static_cast<MSSRBSimulator*> (clientData)->notifyCaseChanged(static_cast<MSSRBSimulator*> (clientData)->m_iTestCase);
+}
+
