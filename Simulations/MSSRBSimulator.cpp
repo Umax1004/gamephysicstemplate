@@ -6,7 +6,7 @@ MSSRBSimulator::MSSRBSimulator()
 }
 
 const char* MSSRBSimulator::getTestCasesStr() {
-	return "DEMO,CLOTH,COMPLEX,CUBE,BOUNCE";
+	return "DEMO,CLOTH,COMPLEX,CUBE,BOUNCE,JUMP";
 }
 
 const char* MSSRBSimulator::getIntegratorsStr() {
@@ -38,7 +38,7 @@ void MSSRBSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	mss.drawSprings(pd3dImmediateContext);
 	rb.drawFrame(pd3dImmediateContext);
-	if (m_iTestCase == 1)
+	if (m_iTestCase == 1 || m_iTestCase == 5)
 	{
 		DUC->beginTriangle();
 		for (int y = 0; y < ySize - 1; y++)
@@ -182,6 +182,45 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 		setGravity(Vec3{ 0, -9.8, 0 });
 		setGravity(Vec3{ 0, -9.8, 0 });
 		addRigidBody({ 0, 0.5, 0 }, {0.2, 0.2, 0.2}, 0.5);
+	}
+	else if (m_iTestCase == 5) {
+		setDampingFactor(0.5);
+		setStiffness(700.0f);
+		setGravity({ 0, -10, 0 });
+		rb.m_fBounciness = 0.75;
+		rb.m_fRotationalFriction = 0.98;
+
+		for (int y = 0; y < ySize; y++)
+		{
+			for (int x = 0; x < xSize; x++)
+			{
+				if ((x != 0 && y != 0) && (x != (xSize-1) && y != 0) && (x != (xSize - 1) && y != (ySize - 1)) && (x != 0 && y != (ySize - 1)))
+				{
+					int temp = addRigidBody(Vec3((x + offsetX) / invScale, 0, (y + offsetY) / invScale), { box_size, box_size, box_size }, mass);
+				}
+				else
+				{
+					int temp = addRigidBody(Vec3((x + offsetX) / invScale, 0, (y + offsetY) / invScale), { box_size, box_size, box_size }, INFINITY);
+				}
+			}
+		}
+		for (int y = 0; y < ySize; y++)
+		{
+			for (int x = 0; x < xSize; x++)
+			{
+				if (y != 0)
+				{
+					addSpring((y * xSize) + x, ((y - 1) * xSize) + x, 1 / invScale);
+				}
+				if (x != xSize - 1)
+				{
+					addSpring((y * xSize) + x, (y * xSize) + (x + 1), 1 / invScale);
+				}
+			}
+		}
+
+		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.0, 1, 1.0), INFINITY); // Ground
+		addRigidBody(Vec3(0, 1, 0), Vec3(0.5, 0.5, 0.5), 3); // Table resting on the ground
 	}
 	else
 		throw "Not implemented";
