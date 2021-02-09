@@ -6,7 +6,7 @@ MSSRBSimulator::MSSRBSimulator()
 }
 
 const char* MSSRBSimulator::getTestCasesStr() {
-	return "DEMO,CLOTH,COMPLEX,CUBE,BOUNCE,JUMP";
+	return "DEMO,CLOTH,TRAMPOLINE";
 }
 
 const char* MSSRBSimulator::getIntegratorsStr() {
@@ -38,7 +38,7 @@ void MSSRBSimulator::drawFrame(ID3D11DeviceContext* pd3dImmediateContext)
 {
 	mss.drawSprings(pd3dImmediateContext);
 	rb.drawFrame(pd3dImmediateContext);
-	if (m_iTestCase == 1 || m_iTestCase == 5)
+	if (m_iTestCase == 1 || m_iTestCase == 2)
 	{
 		DUC->beginTriangle();
 		for (int y = 0; y < ySize - 1; y++)
@@ -116,74 +116,7 @@ void MSSRBSimulator::notifyCaseChanged(int testCase)
 		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(1.0, 1, 1.0), INFINITY); // Ground
 		addRigidBody(Vec3(0, -0.749, 0), Vec3(0.5, 0.5, 0.5), 3); // Table resting on the ground
 	}
-	else if (m_iTestCase == 2) { //Complex
-
-		setDampingFactor(0.5);
-		setStiffness(500.0f);
-
-		const int massPointsAmount = 10;
-		const float wholeSpringLength = 0.6f;
-		float x = 0.f, y = 0.5f;
-		const float step = wholeSpringLength / static_cast<float>(massPointsAmount);
-		int previousPointId = addRigidBody(Vec3(x, y, 0), Vec3(0.01, 0.01, 0.01), 0.5);
-		for (int i = 0; i < massPointsAmount; ++i)
-		{
-			x -= step;
-			y -= step / 2;
-			const int currentPointId = addRigidBody(Vec3(x, y, 0), Vec3(0.01, 0.01, 0.01), 0.5);
-			addSpring(previousPointId, currentPointId, wholeSpringLength / massPointsAmount);
-			previousPointId = currentPointId;
-		}
-
-	}
-	else if (m_iTestCase == 3) { // Cube
-		setDampingFactor(1);
-		setStiffness(300.0f);
-		setGravity(Vec3{ 0, -9.8, 0 });
-		for (int y = 0; y < 3; y++)
-		{
-			for (int x = 1; x >= -1; x--)
-			{
-				for (int z = -1; z <= 1; z++)
-				{
-					int temp = addRigidBody(Vec3(x, y, z), {0.2, 0.2, 0.2}, 1);
-				}
-			}
-		}
-
-		for (int y = 0; y <= 2; y++)
-		{
-			for (int x = 0; x <= 2; x++)
-			{
-				for (int z = 0; z <= 2; z++)
-				{
-					if (y != 0)
-					{
-						addSpring((y * 9) + (x * 3) + z, ((y - 1) * 9) + (x * 3) + z, 1);
-					}
-					if (x != 2)
-					{
-						addSpring((y * 9) + (x * 3) + z, (y * 9) + ((x+1) * 3) + z, 1);
-					}
-					if (z != 2)
-					{
-						addSpring((y * 9) + (x * 3) + z, (y * 9) + (x * 3) + (z+1), 1);
-					}
-					//addSpring(p0, p1, );
-				}
-			}
-		}
-
-		addRigidBody(Vec3(0.0f, -1.5, 0.0f), Vec3(3, 1, 3), INFINITY); // Ground plane
-		
-	}
-	else if (m_iTestCase == 4) {
-		setDampingFactor(0.5);
-		setGravity(Vec3{ 0, -9.8, 0 });
-		setGravity(Vec3{ 0, -9.8, 0 });
-		addRigidBody({ 0, 0.5, 0 }, {0.2, 0.2, 0.2}, 0.5);
-	}
-	else if (m_iTestCase == 5) {
+	else if (m_iTestCase == 2) {
 		setDampingFactor(0.5);
 		setStiffness(700.0f);
 		setGravity({ 0, -10, 0 });
